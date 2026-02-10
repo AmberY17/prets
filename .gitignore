@@ -7,6 +7,7 @@ instrumentation-client.ts
 
 # Common ignores
 node_modules/
+.pnpm-store/
 .next/
 .env*.local
 .DS_Store
