@@ -14,6 +14,13 @@ export interface User {
     code: string
     coachId: string
   } | null
+  groups: {
+    id: string
+    name: string
+    code: string
+    coachId: string
+  }[]
+  groupIds: string[]
   profileComplete: boolean
 }
 

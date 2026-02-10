@@ -3,7 +3,7 @@
 import React from "react"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Megaphone, X, Send, Loader2, Shield } from "lucide-react"
+import { Megaphone, X, Send, Loader2, Shield, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
@@ -107,15 +107,29 @@ export function AnnouncementBanner({
                 </p>
               </div>
               {isCoach && (
-                <button
-                  type="button"
-                  onClick={handleDismiss}
-                  disabled={loading}
-                  className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                  aria-label="Remove announcement"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
+                <div className="flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setText(announcement.text)
+                      setIsComposing(true)
+                    }}
+                    disabled={loading}
+                    className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    aria-label="Edit announcement"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDismiss}
+                    disabled={loading}
+                    className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    aria-label="Remove announcement"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               )}
             </div>
           </motion.div>
@@ -153,7 +167,7 @@ export function AnnouncementBanner({
               <div className="mb-3 flex items-center gap-2">
                 <Shield className="h-3.5 w-3.5 text-primary" />
                 <span className="text-xs font-semibold text-foreground">
-                  New Announcement
+                  {announcement && text === announcement.text ? "Edit Announcement" : "New Announcement"}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   Visible to all group members

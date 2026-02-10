@@ -50,12 +50,20 @@ export async function GET(req: Request) {
       return NextResponse.json({ comments: [] })
     }
 
-    // Check they share a group
+    // Check they share a group (support multi-group membership)
     if (!isLogOwner) {
       const logOwner = await db.collection("users").findOne({
         _id: new ObjectId(log.userId),
       })
-      if (!logOwner || logOwner.groupId !== currentUser.groupId) {
+      if (!logOwner) {
+        return NextResponse.json({ comments: [] })
+      }
+      const ownerGroups = Array.isArray(logOwner.groupIds) ? logOwner.groupIds : []
+      if (logOwner.groupId && !ownerGroups.includes(logOwner.groupId)) ownerGroups.push(logOwner.groupId)
+      const currentGroups = Array.isArray(currentUser.groupIds) ? currentUser.groupIds : []
+      if (currentUser.groupId && !currentGroups.includes(currentUser.groupId)) currentGroups.push(currentUser.groupId)
+      const sharesGroup = ownerGroups.some((g: string) => currentGroups.includes(g))
+      if (!sharesGroup) {
         return NextResponse.json({ comments: [] })
       }
     }
@@ -164,12 +172,23 @@ export async function POST(req: Request) {
       )
     }
 
-    // If coach, verify they are in the same group as the log owner
+    // If coach, verify they share a group with the log owner
     if (isCoach && !isLogOwner) {
       const logOwner = await db.collection("users").findOne({
         _id: new ObjectId(log.userId),
       })
-      if (!logOwner || logOwner.groupId !== currentUser.groupId) {
+      if (!logOwner) {
+        return NextResponse.json(
+          { error: "Log owner not found" },
+          { status: 404 }
+        )
+      }
+      const ownerGroups = Array.isArray(logOwner.groupIds) ? logOwner.groupIds : []
+      if (logOwner.groupId && !ownerGroups.includes(logOwner.groupId)) ownerGroups.push(logOwner.groupId)
+      const currentGroups = Array.isArray(currentUser.groupIds) ? currentUser.groupIds : []
+      if (currentUser.groupId && !currentGroups.includes(currentUser.groupId)) currentGroups.push(currentUser.groupId)
+      const sharesGroup = ownerGroups.some((g: string) => currentGroups.includes(g))
+      if (!sharesGroup) {
         return NextResponse.json(
           { error: "You can only comment on logs from your group members" },
           { status: 403 }

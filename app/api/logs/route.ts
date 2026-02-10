@@ -12,6 +12,9 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url)
     const tags = searchParams.getAll("tag")
+    const filterUserId = searchParams.get("userId") // Filter by specific athlete
+    const dateFrom = searchParams.get("dateFrom")
+    const dateTo = searchParams.get("dateTo")
 
     const db = await getDb()
 
@@ -25,19 +28,27 @@ export async function GET(req: Request) {
     let filter: Record<string, unknown>
 
     if (userGroupId) {
-      // Get all members of the same group
+      // Get all members of the same group (support both old groupId and new groupIds)
       const groupMembers = await db
         .collection("users")
-        .find({ groupId: userGroupId })
+        .find({ $or: [{ groupIds: userGroupId }, { groupId: userGroupId }] })
         .project({ _id: 1 })
         .toArray()
       const memberIds = groupMembers.map((m) => m._id.toString())
 
-      filter = {
-        $or: [
-          { userId: session.userId }, // All own logs
-          { userId: { $in: memberIds }, isGroup: true }, // Group members' non-private logs
-        ],
+      if (filterUserId && currentUser?.role === "coach" && memberIds.includes(filterUserId)) {
+        // Coach filtering by specific athlete
+        filter = {
+          userId: filterUserId,
+          isGroup: true,
+        }
+      } else {
+        filter = {
+          $or: [
+            { userId: session.userId }, // All own logs
+            { userId: { $in: memberIds }, isGroup: true }, // Group members' non-private logs
+          ],
+        }
       }
     } else {
       filter = { userId: session.userId }
@@ -45,6 +56,14 @@ export async function GET(req: Request) {
 
     if (tags.length > 0) {
       filter.tags = { $all: tags }
+    }
+
+    // Date filtering
+    if (dateFrom || dateTo) {
+      const timestampFilter: Record<string, Date> = {}
+      if (dateFrom) timestampFilter.$gte = new Date(dateFrom)
+      if (dateTo) timestampFilter.$lte = new Date(dateTo)
+      filter.timestamp = timestampFilter
     }
 
     const logs = await db

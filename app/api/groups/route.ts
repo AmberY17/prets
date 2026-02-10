@@ -12,7 +12,33 @@ function generateCode() {
   return code
 }
 
-// POST: create a group (coach only) or join a group (any user)
+// Helper: ensure user's groupIds array is in sync with their groupId
+async function ensureGroupIds(db: ReturnType<typeof Object>, userId: string) {
+  const user = await (db as any).collection("users").findOne({
+    _id: new ObjectId(userId),
+  })
+  if (!user) return user
+  // Migrate: if user has groupId but no groupIds array, create it
+  if (user.groupId && (!Array.isArray(user.groupIds) || !user.groupIds.includes(user.groupId))) {
+    const groupIds = Array.isArray(user.groupIds) ? [...user.groupIds] : []
+    if (!groupIds.includes(user.groupId)) groupIds.push(user.groupId)
+    await (db as any).collection("users").updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { groupIds } }
+    )
+    user.groupIds = groupIds
+  }
+  if (!Array.isArray(user.groupIds)) {
+    await (db as any).collection("users").updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { groupIds: [] } }
+    )
+    user.groupIds = []
+  }
+  return user
+}
+
+// POST: create a group (coach only), join a group, switch group, or leave a group
 export async function POST(req: Request) {
   try {
     const session = await getSession()
@@ -26,9 +52,7 @@ export async function POST(req: Request) {
 
     if (action === "create") {
       // Verify user is a coach
-      const user = await db.collection("users").findOne({
-        _id: new ObjectId(session.userId),
-      })
+      const user = await ensureGroupIds(db, session.userId)
       if (!user || user.role !== "coach") {
         return NextResponse.json(
           { error: "Only coaches can create groups" },
@@ -45,7 +69,6 @@ export async function POST(req: Request) {
       }
 
       let code = generateCode()
-      // Ensure uniqueness
       let existing = await db.collection("groups").findOne({ code })
       while (existing) {
         code = generateCode()
@@ -61,13 +84,15 @@ export async function POST(req: Request) {
 
       const groupId = result.insertedId.toString()
 
-      // Auto-join the coach to their group
+      // Add to groupIds and set as active
       await db.collection("users").updateOne(
         { _id: new ObjectId(session.userId) },
-        { $set: { groupId } }
+        {
+          $set: { groupId },
+          $addToSet: { groupIds: groupId },
+        }
       )
 
-      // Refresh session
       await createSession({
         ...session,
         groupId,
@@ -88,6 +113,11 @@ export async function POST(req: Request) {
         )
       }
 
+      const user = await ensureGroupIds(db, session.userId)
+      if (!user) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 })
+      }
+
       const group = await db
         .collection("groups")
         .findOne({ code: code.toUpperCase() })
@@ -101,12 +131,91 @@ export async function POST(req: Request) {
 
       const groupId = group._id.toString()
 
+      // Check if already a member
+      if (user.groupIds?.includes(groupId)) {
+        // Already a member, just switch to it
+        await db.collection("users").updateOne(
+          { _id: new ObjectId(session.userId) },
+          { $set: { groupId } }
+        )
+
+        await createSession({
+          ...session,
+          groupId,
+        })
+
+        return NextResponse.json({
+          success: true,
+          group: {
+            id: groupId,
+            name: group.name,
+            code: group.code,
+          },
+        })
+      }
+
+      // Add to groupIds and set as active
+      await db.collection("users").updateOne(
+        { _id: new ObjectId(session.userId) },
+        {
+          $set: { groupId },
+          $addToSet: { groupIds: groupId },
+        }
+      )
+
+      await createSession({
+        ...session,
+        groupId,
+      })
+
+      return NextResponse.json({
+        success: true,
+        group: {
+          id: groupId,
+          name: group.name,
+          code: group.code,
+        },
+      })
+    }
+
+    if (action === "switch") {
+      const { groupId } = body
+      if (!groupId) {
+        return NextResponse.json(
+          { error: "Group ID is required" },
+          { status: 400 }
+        )
+      }
+
+      const user = await ensureGroupIds(db, session.userId)
+      if (!user) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 })
+      }
+
+      // Verify the user is a member of this group
+      if (!user.groupIds?.includes(groupId)) {
+        return NextResponse.json(
+          { error: "You are not a member of this group" },
+          { status: 403 }
+        )
+      }
+
+      const group = await db.collection("groups").findOne({
+        _id: new ObjectId(groupId),
+      })
+
+      if (!group) {
+        return NextResponse.json(
+          { error: "Group not found" },
+          { status: 404 }
+        )
+      }
+
       await db.collection("users").updateOne(
         { _id: new ObjectId(session.userId) },
         { $set: { groupId } }
       )
 
-      // Refresh session
       await createSession({
         ...session,
         groupId,
@@ -123,17 +232,44 @@ export async function POST(req: Request) {
     }
 
     if (action === "leave") {
+      const user = await ensureGroupIds(db, session.userId)
+      if (!user) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 })
+      }
+
+      const currentGroupId = user.groupId
+
+      if (!currentGroupId) {
+        return NextResponse.json(
+          { error: "Not in a group" },
+          { status: 400 }
+        )
+      }
+
+      // Remove from groupIds and clear active groupId
+      const updatedGroupIds = (user.groupIds || []).filter(
+        (id: string) => id !== currentGroupId
+      )
+
+      // Switch to another group if available, otherwise null
+      const newActiveGroupId = updatedGroupIds.length > 0 ? updatedGroupIds[0] : null
+
       await db.collection("users").updateOne(
         { _id: new ObjectId(session.userId) },
-        { $set: { groupId: null } }
+        {
+          $set: {
+            groupId: newActiveGroupId,
+            groupIds: updatedGroupIds,
+          },
+        }
       )
 
       await createSession({
         ...session,
-        groupId: undefined,
+        groupId: newActiveGroupId || undefined,
       })
 
-      return NextResponse.json({ success: true })
+      return NextResponse.json({ success: true, newActiveGroupId })
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 })
@@ -146,7 +282,7 @@ export async function POST(req: Request) {
   }
 }
 
-// GET: fetch group members
+// GET: fetch group members, coach's groups, or user's groups
 export async function GET(req: Request) {
   try {
     const session = await getSession()
@@ -156,15 +292,71 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url)
     const groupId = searchParams.get("groupId")
+    const mode = searchParams.get("mode")
 
+    const db = await getDb()
+
+    // Mode: fetch all groups created by this coach
+    if (mode === "coach-groups") {
+      const groups = await db
+        .collection("groups")
+        .find({ coachId: session.userId })
+        .sort({ createdAt: -1 })
+        .toArray()
+
+      return NextResponse.json({
+        groups: groups.map((g) => ({
+          id: g._id.toString(),
+          name: g.name,
+          code: g.code,
+        })),
+      })
+    }
+
+    // Mode: fetch all groups the user is a member of
+    if (mode === "my-groups") {
+      const user = await db.collection("users").findOne({
+        _id: new ObjectId(session.userId),
+      })
+
+      if (!user) {
+        return NextResponse.json({ groups: [] })
+      }
+
+      const groupIds = Array.isArray(user.groupIds) ? user.groupIds : []
+      // Also include current groupId for backward compat
+      if (user.groupId && !groupIds.includes(user.groupId)) {
+        groupIds.push(user.groupId)
+      }
+
+      if (groupIds.length === 0) {
+        return NextResponse.json({ groups: [] })
+      }
+
+      const groups = await db
+        .collection("groups")
+        .find({ _id: { $in: groupIds.map((id: string) => new ObjectId(id)) } })
+        .toArray()
+
+      return NextResponse.json({
+        groups: groups.map((g) => ({
+          id: g._id.toString(),
+          name: g.name,
+          code: g.code,
+          coachId: g.coachId,
+        })),
+      })
+    }
+
+    // Default: fetch members for a specific group
     if (!groupId) {
       return NextResponse.json({ members: [] })
     }
 
-    const db = await getDb()
+    // Find members using both old groupId and new groupIds
     const members = await db
       .collection("users")
-      .find({ groupId })
+      .find({ $or: [{ groupIds: groupId }, { groupId: groupId }] })
       .project({ password: 0 })
       .toArray()
 

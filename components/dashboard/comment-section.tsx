@@ -89,7 +89,7 @@ export function CommentSection({
   const commentCount = comments.length
 
   return (
-    <div className="mt-3 border-t border-border pt-3">
+    <div className="mt-4 border-t border-border/50 pt-3">
       {/* Toggle button */}
       <button
         type="button"
@@ -97,10 +97,10 @@ export function CommentSection({
           e.stopPropagation()
           setIsExpanded((prev) => !prev)
         }}
-        className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-secondary/80 hover:text-foreground"
       >
         <MessageCircle className="h-3.5 w-3.5" />
-        <span>
+        <span className="font-medium">
           {isExpanded
             ? "Hide feedback"
             : commentCount > 0
@@ -108,9 +108,9 @@ export function CommentSection({
               : "Feedback"}
         </span>
         {isExpanded ? (
-          <ChevronUp className="ml-auto h-3 w-3" />
+          <ChevronUp className="ml-auto h-3.5 w-3.5" />
         ) : (
-          <ChevronDown className="ml-auto h-3 w-3" />
+          <ChevronDown className="ml-auto h-3.5 w-3.5" />
         )}
       </button>
 
@@ -128,9 +128,10 @@ export function CommentSection({
             <div className="flex flex-col gap-3 pt-3">
               {/* Comments list */}
               {comments.length > 0 ? (
-                <div className="flex flex-col gap-2.5">
+                <div className="flex flex-col gap-3">
                   {comments.map((comment) => {
                     const isOwn = comment.authorId === currentUserId
+                    const isCoachComment = comment.authorRole === "coach"
                     return (
                       <motion.div
                         key={comment.id}
@@ -138,11 +139,11 @@ export function CommentSection({
                         animate={{ opacity: 1, y: 0 }}
                         className={`flex gap-2.5 ${isOwn ? "flex-row-reverse" : ""}`}
                       >
-                        <Avatar className="h-6 w-6 shrink-0">
+                        <Avatar className="h-7 w-7 shrink-0 shadow-sm">
                           <AvatarFallback
-                            className={`text-xs ${
-                              comment.authorRole === "coach"
-                                ? "bg-primary/10 text-primary"
+                            className={`text-[11px] font-semibold ${
+                              isCoachComment
+                                ? "bg-primary/15 text-primary"
                                 : "bg-secondary text-foreground"
                             }`}
                           >
@@ -151,20 +152,23 @@ export function CommentSection({
                           </AvatarFallback>
                         </Avatar>
                         <div
-                          className={`max-w-[80%] rounded-xl px-3 py-2 ${
+                          className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 shadow-sm ${
                             isOwn
                               ? "bg-primary/10 text-foreground"
-                              : "bg-secondary text-foreground"
+                              : "bg-secondary/80 text-foreground"
                           }`}
                         >
-                          <div className="mb-0.5 flex items-center gap-1.5">
-                            <span className="text-xs font-medium">
+                          <div className="mb-1 flex items-center gap-1.5">
+                            <span className="text-xs font-semibold">
                               {comment.authorName}
                             </span>
-                            {comment.authorRole === "coach" && (
-                              <Shield className="h-2.5 w-2.5 text-primary" />
+                            {isCoachComment && (
+                              <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-1.5 py-px text-[10px] font-medium text-primary">
+                                <Shield className="h-2 w-2" />
+                                Coach
+                              </span>
                             )}
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-[11px] text-muted-foreground/70">
                               {formatDistanceToNow(
                                 new Date(comment.createdAt),
                                 { addSuffix: true }
@@ -180,9 +184,12 @@ export function CommentSection({
                   })}
                 </div>
               ) : (
-                <p className="px-2 text-xs text-muted-foreground">
-                  No feedback yet. Start the conversation.
-                </p>
+                <div className="flex flex-col items-center gap-1 py-3">
+                  <MessageCircle className="h-4 w-4 text-muted-foreground/40" />
+                  <p className="text-xs text-muted-foreground/60">
+                    No feedback yet. Start the conversation.
+                  </p>
+                </div>
               )}
 
               {/* Input */}
@@ -196,6 +203,7 @@ export function CommentSection({
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     onKeyDown={(e) => {
+                      e.stopPropagation()
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault()
                         handleSubmit(e)
@@ -206,20 +214,20 @@ export function CommentSection({
                     }
                     rows={1}
                     maxLength={1000}
-                    className="w-full resize-none rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+                    className="w-full resize-none rounded-xl border border-primary/20 bg-secondary/50 px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-0"
                   />
                 </div>
                 <Button
                   type="submit"
                   size="sm"
                   disabled={sending || !newComment.trim()}
-                  className="h-9 w-9 shrink-0 bg-primary p-0 text-primary-foreground hover:bg-primary/90"
+                  className="h-[38px] w-[38px] shrink-0 rounded-xl bg-primary p-0 text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40"
                   aria-label="Send comment"
                 >
                   {sending ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Send className="h-3.5 w-3.5" />
+                    <Send className="h-4 w-4" />
                   )}
                 </Button>
               </form>

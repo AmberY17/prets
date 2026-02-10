@@ -12,9 +12,10 @@ interface LogDetailProps {
   onClose: () => void
   onEdit: (log: LogEntry) => void
   onDelete: (id: string) => void
+  isCoach?: boolean
 }
 
-export function LogDetail({ log, onClose, onEdit, onDelete }: LogDetailProps) {
+export function LogDetail({ log, onClose, onEdit, onDelete, isCoach }: LogDetailProps) {
   const formattedDate = format(new Date(log.timestamp), "EEEE, MMMM d, yyyy")
   const formattedTime = format(new Date(log.timestamp), "h:mm a")
 
@@ -120,8 +121,8 @@ export function LogDetail({ log, onClose, onEdit, onDelete }: LogDetailProps) {
         )}
       </div>
 
-      {/* Actions (only for own logs) */}
-      {log.isOwn && (
+      {/* Actions (only for own logs, not for coaches viewing) */}
+      {log.isOwn && !isCoach && (
         <div className="flex gap-2 border-t border-border pt-4">
           <Button
             variant="outline"

@@ -48,6 +48,9 @@ export function LogCard({ log, onDelete, onEdit, onClick, index, currentUserId, 
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
+        // Only handle if the event target is the card itself, not child inputs
+        const target = e.target as HTMLElement
+        if (target.tagName === "TEXTAREA" || target.tagName === "INPUT") return
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault()
           onClick(log)

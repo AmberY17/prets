@@ -5,6 +5,7 @@ import { useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { mutate } from "swr"
 import { ArrowLeft, Loader2, Users, Dumbbell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -49,6 +50,8 @@ export default function AuthPage() {
             setLoading(false)
             return
           }
+          // Update SWR cache so dashboard sees the user immediately (avoids redirect race)
+          mutate("/api/auth/session", { user: { ...data.user, group: null } }, { revalidate: true })
           router.push("/dashboard")
         } else {
           if (displayName.trim().length < 2) {
@@ -73,6 +76,8 @@ export default function AuthPage() {
             return
           }
           toast.success("Account created!")
+          // Update SWR cache so dashboard sees the user immediately (avoids redirect race)
+          mutate("/api/auth/session", { user: { ...data.user, group: null } }, { revalidate: true })
           router.push("/dashboard")
         }
       } catch {

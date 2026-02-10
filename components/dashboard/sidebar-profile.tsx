@@ -3,7 +3,17 @@
 import React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { LogOut, Users, Plus, ArrowRightLeft, Loader2, Copy, Check, Shield } from "lucide-react"
+import {
+  LogOut,
+  Users,
+  Plus,
+  ArrowRightLeft,
+  Loader2,
+  Copy,
+  Check,
+  Shield,
+  ChevronDown,
+} from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,13 +28,44 @@ interface SidebarProfileProps {
   onGroupChanged: () => void
 }
 
-export function SidebarProfile({ user, onLogout, onGroupChanged }: SidebarProfileProps) {
+export function SidebarProfile({
+  user,
+  onLogout,
+  onGroupChanged,
+}: SidebarProfileProps) {
   const router = useRouter()
   const [showGroupAction, setShowGroupAction] = useState(false)
   const [groupAction, setGroupAction] = useState<"create" | "join">("join")
   const [groupInput, setGroupInput] = useState("")
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [showGroupSwitcher, setShowGroupSwitcher] = useState(false)
+
+  const userGroups = user.groups ?? []
+  const hasMultipleGroups = userGroups.length > 1
+
+  const handleSwitchGroup = async (groupId: string) => {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/groups", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "switch", groupId }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || "Failed to switch group")
+        return
+      }
+      toast.success(`Switched to "${data.group.name}"`)
+      setShowGroupSwitcher(false)
+      onGroupChanged()
+    } catch {
+      toast.error("Network error")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" })
@@ -81,6 +122,7 @@ export function SidebarProfile({ user, onLogout, onGroupChanged }: SidebarProfil
         return
       }
       toast.success("Left the group")
+      setShowGroupSwitcher(false)
       onGroupChanged()
     } catch {
       toast.error("Network error")
@@ -129,7 +171,7 @@ export function SidebarProfile({ user, onLogout, onGroupChanged }: SidebarProfil
         </div>
       </div>
 
-      {/* Group Info */}
+      {/* Active Group Info */}
       {user.group ? (
         <div className="rounded-xl border border-border bg-secondary/50 p-3">
           <div className="flex items-center justify-between">
@@ -153,20 +195,82 @@ export function SidebarProfile({ user, onLogout, onGroupChanged }: SidebarProfil
               {user.group.code}
             </button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLeaveGroup}
-            disabled={loading}
-            className="mt-2 h-7 w-full gap-1 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <ArrowRightLeft className="h-3 w-3" />
-            Leave Group
-          </Button>
+
+          {/* Group switcher (available to ALL users with multiple groups) */}
+          {hasMultipleGroups && (
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={() => setShowGroupSwitcher((prev) => !prev)}
+                className="flex w-full items-center justify-between rounded-lg bg-secondary px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <span className="flex items-center gap-1.5">
+                  <ArrowRightLeft className="h-3 w-3" />
+                  Switch Group
+                </span>
+                <ChevronDown
+                  className={`h-3 w-3 transition-transform ${showGroupSwitcher ? "rotate-180" : ""}`}
+                />
+              </button>
+              {showGroupSwitcher && (
+                <div className="mt-1.5 flex flex-col gap-0.5 rounded-lg border border-border bg-card p-1">
+                  {userGroups.map((g) => (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => handleSwitchGroup(g.id)}
+                      disabled={loading || g.id === user.group?.id}
+                      className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs transition-colors ${
+                        g.id === user.group?.id
+                          ? "bg-primary/10 font-medium text-primary"
+                          : "text-foreground hover:bg-secondary"
+                      }`}
+                    >
+                      <Users className="h-3 w-3" />
+                      <span className="flex-1 text-left">{g.name}</span>
+                      {g.id === user.group?.id && (
+                        <Check className="h-3 w-3 text-primary" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Actions: Join another group / Leave */}
+          <div className="mt-2 flex gap-1.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowGroupAction(true)
+                setGroupAction("join")
+              }}
+              disabled={loading}
+              className="h-7 flex-1 gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <Plus className="h-3 w-3" />
+              Join Another
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLeaveGroup}
+              disabled={loading}
+              className="h-7 gap-1 text-xs text-muted-foreground hover:text-destructive"
+            >
+              <ArrowRightLeft className="h-3 w-3" />
+              Leave
+            </Button>
+          </div>
         </div>
-      ) : (
+      ) : null}
+
+      {/* Join/Create group form (shown when no group, or when user clicks "Join Another") */}
+      {(!user.group || showGroupAction) && (
         <div>
-          {!showGroupAction ? (
+          {!showGroupAction && !user.group ? (
             <Button
               variant="outline"
               size="sm"
@@ -176,7 +280,7 @@ export function SidebarProfile({ user, onLogout, onGroupChanged }: SidebarProfil
               <Users className="h-3.5 w-3.5" />
               {user.role === "coach" ? "Create or Join Group" : "Join a Group"}
             </Button>
-          ) : (
+          ) : showGroupAction ? (
             <div className="rounded-xl border border-border bg-secondary/50 p-3">
               {/* Toggle create/join (coach can do both, athlete can only join) */}
               {user.role === "coach" && (
@@ -254,7 +358,7 @@ export function SidebarProfile({ user, onLogout, onGroupChanged }: SidebarProfil
                 </div>
               </form>
             </div>
-          )}
+          ) : null}
         </div>
       )}
 
