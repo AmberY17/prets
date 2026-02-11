@@ -11,6 +11,10 @@ import {
   Shield,
   ChevronDown,
   ChevronUp,
+  Pencil,
+  Trash2,
+  Check,
+  X,
 } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -45,6 +49,9 @@ export function CommentSection({
   const [isExpanded, setIsExpanded] = useState(false)
   const [newComment, setNewComment] = useState("")
   const [sending, setSending] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editText, setEditText] = useState("")
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   const canParticipate = isLogOwner || isCoach
 
@@ -81,6 +88,54 @@ export function CommentSection({
       }
     },
     [logId, newComment, mutate]
+  )
+
+  const handleEdit = useCallback(
+    async (commentId: string) => {
+      if (!editText.trim()) return
+      setActionLoading(commentId)
+      try {
+        const res = await fetch("/api/comments", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: commentId, text: editText.trim() }),
+        })
+        if (!res.ok) {
+          const data = await res.json()
+          toast.error(data.error || "Failed to edit comment")
+          return
+        }
+        setEditingId(null)
+        setEditText("")
+        mutate()
+      } catch {
+        toast.error("Network error")
+      } finally {
+        setActionLoading(null)
+      }
+    },
+    [editText, mutate]
+  )
+
+  const handleDelete = useCallback(
+    async (commentId: string) => {
+      setActionLoading(commentId)
+      try {
+        const res = await fetch(`/api/comments?id=${commentId}`, {
+          method: "DELETE",
+        })
+        if (!res.ok) {
+          toast.error("Failed to delete comment")
+          return
+        }
+        mutate()
+      } catch {
+        toast.error("Network error")
+      } finally {
+        setActionLoading(null)
+      }
+    },
+    [mutate]
   )
 
   // Don't show comment section if user can't participate
@@ -132,12 +187,13 @@ export function CommentSection({
                   {comments.map((comment) => {
                     const isOwn = comment.authorId === currentUserId
                     const isCoachComment = comment.authorRole === "coach"
+                    const isEditing = editingId === comment.id
                     return (
                       <motion.div
                         key={comment.id}
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`flex gap-2.5 ${isOwn ? "flex-row-reverse" : ""}`}
+                        className={`group/comment flex gap-2.5 ${isOwn ? "flex-row-reverse" : ""}`}
                       >
                         <Avatar className="h-7 w-7 shrink-0 shadow-sm">
                           <AvatarFallback
@@ -175,9 +231,85 @@ export function CommentSection({
                               )}
                             </span>
                           </div>
-                          <p className="text-sm leading-relaxed">
-                            {comment.text}
-                          </p>
+                          {isEditing ? (
+                            <div className="flex flex-col gap-1.5">
+                              <textarea
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                onKeyDown={(e) => {
+                                  e.stopPropagation()
+                                  if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault()
+                                    handleEdit(comment.id)
+                                  }
+                                  if (e.key === "Escape") {
+                                    setEditingId(null)
+                                    setEditText("")
+                                  }
+                                }}
+                                rows={2}
+                                className="w-full resize-none rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                autoFocus
+                              />
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleEdit(comment.id)}
+                                  disabled={actionLoading === comment.id || !editText.trim()}
+                                  className="rounded-md p-1 text-primary transition-colors hover:bg-primary/10 disabled:opacity-40"
+                                  aria-label="Save edit"
+                                >
+                                  {actionLoading === comment.id ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <Check className="h-3 w-3" />
+                                  )}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => { setEditingId(null); setEditText("") }}
+                                  className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary"
+                                  aria-label="Cancel edit"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-sm leading-relaxed">
+                              {comment.text}
+                            </p>
+                          )}
+                          {/* Edit/Delete actions (own comments only, not while editing) */}
+                          {isOwn && !isEditing && (
+                            <div className="mt-1 flex items-center gap-0.5 opacity-0 transition-opacity group-hover/comment:opacity-100">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingId(comment.id)
+                                  setEditText(comment.text)
+                                }}
+                                disabled={actionLoading === comment.id}
+                                className="rounded-md p-1 text-muted-foreground/60 transition-colors hover:text-foreground"
+                                aria-label="Edit comment"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(comment.id)}
+                                disabled={actionLoading === comment.id}
+                                className="rounded-md p-1 text-muted-foreground/60 transition-colors hover:text-destructive"
+                                aria-label="Delete comment"
+                              >
+                                {actionLoading === comment.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Trash2 className="h-3 w-3" />
+                                )}
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     )

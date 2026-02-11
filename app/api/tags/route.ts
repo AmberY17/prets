@@ -10,16 +10,22 @@ export async function GET() {
     }
 
     const db = await getDb()
-    const tags = await db
-      .collection("tags")
-      .find({ userId: session.userId })
-      .sort({ name: 1 })
+
+    // Get tags that are actually used in the user's logs
+    const usedTags = await db
+      .collection("logs")
+      .aggregate([
+        { $match: { userId: session.userId, tags: { $exists: true, $ne: [] } } },
+        { $unwind: "$tags" },
+        { $group: { _id: "$tags" } },
+        { $sort: { _id: 1 } },
+      ])
       .toArray()
 
     return NextResponse.json({
-      tags: tags.map((tag) => ({
-        id: tag._id.toString(),
-        name: tag.name,
+      tags: usedTags.map((t, i) => ({
+        id: `tag-${i}`,
+        name: t._id as string,
       })),
     })
   } catch (error) {

@@ -223,3 +223,83 @@ export async function POST(req: Request) {
     )
   }
 }
+
+// PUT: edit a comment (only the comment author can edit)
+export async function PUT(req: Request) {
+  try {
+    const session = await getSession()
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { id, text } = await req.json()
+
+    if (!id) {
+      return NextResponse.json({ error: "Comment ID is required" }, { status: 400 })
+    }
+
+    if (!text || text.trim().length === 0) {
+      return NextResponse.json({ error: "Comment text is required" }, { status: 400 })
+    }
+
+    if (text.trim().length > 1000) {
+      return NextResponse.json({ error: "Comment must be 1000 characters or less" }, { status: 400 })
+    }
+
+    const db = await getDb()
+
+    // Only allow editing own comments
+    const comment = await db.collection("comments").findOne({
+      _id: new ObjectId(id),
+      authorId: session.userId,
+    })
+
+    if (!comment) {
+      return NextResponse.json({ error: "Comment not found or not authorized" }, { status: 404 })
+    }
+
+    await db.collection("comments").updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { text: text.trim(), updatedAt: new Date() } }
+    )
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Update comment error:", error)
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 })
+  }
+}
+
+// DELETE: delete a comment (only the comment author can delete)
+export async function DELETE(req: Request) {
+  try {
+    const session = await getSession()
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(req.url)
+    const id = searchParams.get("id")
+
+    if (!id) {
+      return NextResponse.json({ error: "Comment ID is required" }, { status: 400 })
+    }
+
+    const db = await getDb()
+
+    // Only allow deleting own comments
+    const result = await db.collection("comments").deleteOne({
+      _id: new ObjectId(id),
+      authorId: session.userId,
+    })
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ error: "Comment not found or not authorized" }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Delete comment error:", error)
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 })
+  }
+}

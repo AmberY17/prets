@@ -17,6 +17,7 @@ interface LogFormProps {
   onLogCreated: () => void
   onClose?: () => void
   editLog?: LogEntry | null
+  existingTags?: string[]
 }
 
 function getLocalTimestamp() {
@@ -33,7 +34,7 @@ function toLocalTimestamp(isoString: string) {
   return local.toISOString().slice(0, 16)
 }
 
-export function LogForm({ onLogCreated, onClose, editLog }: LogFormProps) {
+export function LogForm({ onLogCreated, onClose, editLog, existingTags = [] }: LogFormProps) {
   const isEditing = Boolean(editLog)
 
   const [emoji, setEmoji] = useState(editLog?.emoji || "")
@@ -205,14 +206,14 @@ export function LogForm({ onLogCreated, onClose, editLog }: LogFormProps) {
           onChange={(e) => setNotes(e.target.value)}
           placeholder="How was your session?"
           rows={3}
-          className="resize-none border-border bg-secondary text-foreground placeholder:text-muted-foreground"
+          className="resize-y border-border bg-secondary text-foreground placeholder:text-muted-foreground scrollbar-hidden"
         />
       </div>
 
       {/* Tags */}
       <div className="flex flex-col gap-2">
         <Label className="text-foreground">Tags</Label>
-        <TagInput tags={tags} onChange={setTags} />
+        <TagInput tags={tags} onChange={setTags} suggestions={existingTags} />
       </div>
 
       {/* Submit */}

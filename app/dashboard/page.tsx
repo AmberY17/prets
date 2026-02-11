@@ -191,6 +191,7 @@ export default function DashboardPage() {
 
   const logs = logsData?.logs ?? [];
   const tags = tagsData?.tags ?? [];
+  const tagNames = tags.map((t) => t.name);
   const isPanelOpen = panelMode !== null;
 
   return (
@@ -240,7 +241,7 @@ export default function DashboardPage() {
       {/* Three-column layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Column: Profile + Tags */}
-        <aside className="hidden w-72 shrink-0 flex-col gap-4 overflow-y-auto border-r border-border p-4 lg:flex">
+        <aside className="hidden w-72 shrink-0 flex-col gap-4 overflow-y-auto scrollbar-hidden border-r border-border p-4 lg:flex">
           <SidebarProfile
             user={user}
             onLogout={() => mutateAuth()}
@@ -364,7 +365,7 @@ export default function DashboardPage() {
         </aside>
 
         {/* Middle Column: Log Feed */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto scrollbar-hidden p-6">
           <div className="mx-auto max-w-2xl">
             {/* Mobile tag filter */}
             <div className="mb-4 lg:hidden">
@@ -528,7 +529,7 @@ export default function DashboardPage() {
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               className="hidden shrink-0 overflow-hidden border-l border-border lg:block"
             >
-              <div className="h-full w-[380px] overflow-y-auto p-5">
+              <div className="h-full w-[380px] overflow-y-auto scrollbar-hidden p-5">
                 <AnimatePresence mode="wait">
                   {panelMode === "new" && user.role !== "coach" && (
                     <motion.div
@@ -541,6 +542,7 @@ export default function DashboardPage() {
                       <LogForm
                         onLogCreated={handleLogCreated}
                         onClose={handleClosePanel}
+                        existingTags={tagNames}
                       />
                     </motion.div>
                   )}
@@ -577,6 +579,7 @@ export default function DashboardPage() {
                         onClose={() => {
                           setPanelMode("view");
                         }}
+                        existingTags={tagNames}
                       />
                     </motion.div>
                   )}
@@ -603,7 +606,7 @@ export default function DashboardPage() {
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-border bg-card p-6 pb-10"
+                className="max-h-[85vh] w-full max-w-lg overflow-y-auto scrollbar-hidden rounded-t-3xl border border-border bg-card p-6 pb-10"
               >
                 {panelMode === "new" && user.role !== "coach" && (
                   <LogForm
@@ -612,6 +615,7 @@ export default function DashboardPage() {
                       handleClosePanel();
                     }}
                     onClose={handleClosePanel}
+                    existingTags={tagNames}
                   />
                 )}
                 {panelMode === "view" && selectedLog && (
@@ -631,6 +635,7 @@ export default function DashboardPage() {
                       handleClosePanel();
                     }}
                     onClose={handleClosePanel}
+                    existingTags={tagNames}
                   />
                 )}
               </motion.div>
