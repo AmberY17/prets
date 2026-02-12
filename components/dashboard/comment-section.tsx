@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import React from "react"
-import { useState, useCallback } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import useSWR from "swr"
+import React from "react";
+import { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import useSWR from "swr";
 import {
   MessageCircle,
   Send,
@@ -15,30 +15,30 @@ import {
   Trash2,
   Check,
   X,
-} from "lucide-react"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
-import { formatDistanceToNow } from "date-fns"
+} from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
 
 interface Comment {
-  id: string
-  logId: string
-  authorId: string
-  authorName: string
-  authorRole: string
-  text: string
-  createdAt: string
+  id: string;
+  logId: string;
+  authorId: string;
+  authorName: string;
+  authorRole: string;
+  text: string;
+  createdAt: string;
 }
 
 interface CommentSectionProps {
-  logId: string
-  isLogOwner: boolean
-  isCoach: boolean
-  currentUserId: string
+  logId: string;
+  isLogOwner: boolean;
+  isCoach: boolean;
+  currentUserId: string;
 }
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export function CommentSection({
   logId,
@@ -46,102 +46,102 @@ export function CommentSection({
   isCoach,
   currentUserId,
 }: CommentSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [newComment, setNewComment] = useState("")
-  const [sending, setSending] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editText, setEditText] = useState("")
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [sending, setSending] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const canParticipate = isLogOwner || isCoach
+  const canParticipate = isLogOwner || isCoach;
 
   const { data, mutate } = useSWR<{ comments: Comment[] }>(
     canParticipate && isExpanded ? `/api/comments?logId=${logId}` : null,
-    fetcher
-  )
+    fetcher,
+  );
 
-  const comments = data?.comments ?? []
+  const comments = data?.comments ?? [];
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      if (!newComment.trim()) return
+      e.preventDefault();
+      if (!newComment.trim()) return;
 
-      setSending(true)
+      setSending(true);
       try {
         const res = await fetch("/api/comments", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ logId, text: newComment.trim() }),
-        })
+        });
         if (!res.ok) {
-          const data = await res.json()
-          toast.error(data.error || "Failed to post comment")
-          return
+          const data = await res.json();
+          toast.error(data.error || "Failed to post comment");
+          return;
         }
-        setNewComment("")
-        mutate()
+        setNewComment("");
+        mutate();
       } catch {
-        toast.error("Network error")
+        toast.error("Network error");
       } finally {
-        setSending(false)
+        setSending(false);
       }
     },
-    [logId, newComment, mutate]
-  )
+    [logId, newComment, mutate],
+  );
 
   const handleEdit = useCallback(
     async (commentId: string) => {
-      if (!editText.trim()) return
-      setActionLoading(commentId)
+      if (!editText.trim()) return;
+      setActionLoading(commentId);
       try {
         const res = await fetch("/api/comments", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: commentId, text: editText.trim() }),
-        })
+        });
         if (!res.ok) {
-          const data = await res.json()
-          toast.error(data.error || "Failed to edit comment")
-          return
+          const data = await res.json();
+          toast.error(data.error || "Failed to edit comment");
+          return;
         }
-        setEditingId(null)
-        setEditText("")
-        mutate()
+        setEditingId(null);
+        setEditText("");
+        mutate();
       } catch {
-        toast.error("Network error")
+        toast.error("Network error");
       } finally {
-        setActionLoading(null)
+        setActionLoading(null);
       }
     },
-    [editText, mutate]
-  )
+    [editText, mutate],
+  );
 
   const handleDelete = useCallback(
     async (commentId: string) => {
-      setActionLoading(commentId)
+      setActionLoading(commentId);
       try {
         const res = await fetch(`/api/comments?id=${commentId}`, {
           method: "DELETE",
-        })
+        });
         if (!res.ok) {
-          toast.error("Failed to delete comment")
-          return
+          toast.error("Failed to delete comment");
+          return;
         }
-        mutate()
+        mutate();
       } catch {
-        toast.error("Network error")
+        toast.error("Network error");
       } finally {
-        setActionLoading(null)
+        setActionLoading(null);
       }
     },
-    [mutate]
-  )
+    [mutate],
+  );
 
   // Don't show comment section if user can't participate
-  if (!canParticipate) return null
+  if (!canParticipate) return null;
 
-  const commentCount = comments.length
+  const commentCount = comments.length;
 
   return (
     <div className="mt-4 border-t border-border/50 pt-3">
@@ -149,8 +149,8 @@ export function CommentSection({
       <button
         type="button"
         onClick={(e) => {
-          e.stopPropagation()
-          setIsExpanded((prev) => !prev)
+          e.stopPropagation();
+          setIsExpanded((prev) => !prev);
         }}
         className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-secondary/80 hover:text-foreground"
       >
@@ -185,9 +185,9 @@ export function CommentSection({
               {comments.length > 0 ? (
                 <div className="flex flex-col gap-3">
                   {comments.map((comment) => {
-                    const isOwn = comment.authorId === currentUserId
-                    const isCoachComment = comment.authorRole === "coach"
-                    const isEditing = editingId === comment.id
+                    const isOwn = comment.authorId === currentUserId;
+                    const isCoachComment = comment.authorRole === "coach";
+                    const isEditing = editingId === comment.id;
                     return (
                       <motion.div
                         key={comment.id}
@@ -227,7 +227,7 @@ export function CommentSection({
                             <span className="text-[11px] text-muted-foreground/70">
                               {formatDistanceToNow(
                                 new Date(comment.createdAt),
-                                { addSuffix: true }
+                                { addSuffix: true },
                               )}
                             </span>
                           </div>
@@ -237,14 +237,14 @@ export function CommentSection({
                                 value={editText}
                                 onChange={(e) => setEditText(e.target.value)}
                                 onKeyDown={(e) => {
-                                  e.stopPropagation()
+                                  e.stopPropagation();
                                   if (e.key === "Enter" && !e.shiftKey) {
-                                    e.preventDefault()
-                                    handleEdit(comment.id)
+                                    e.preventDefault();
+                                    handleEdit(comment.id);
                                   }
                                   if (e.key === "Escape") {
-                                    setEditingId(null)
-                                    setEditText("")
+                                    setEditingId(null);
+                                    setEditText("");
                                   }
                                 }}
                                 rows={2}
@@ -255,7 +255,10 @@ export function CommentSection({
                                 <button
                                   type="button"
                                   onClick={() => handleEdit(comment.id)}
-                                  disabled={actionLoading === comment.id || !editText.trim()}
+                                  disabled={
+                                    actionLoading === comment.id ||
+                                    !editText.trim()
+                                  }
                                   className="rounded-md p-1 text-primary transition-colors hover:bg-primary/10 disabled:opacity-40"
                                   aria-label="Save edit"
                                 >
@@ -267,7 +270,10 @@ export function CommentSection({
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => { setEditingId(null); setEditText("") }}
+                                  onClick={() => {
+                                    setEditingId(null);
+                                    setEditText("");
+                                  }}
                                   className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary"
                                   aria-label="Cancel edit"
                                 >
@@ -286,8 +292,8 @@ export function CommentSection({
                               <button
                                 type="button"
                                 onClick={() => {
-                                  setEditingId(comment.id)
-                                  setEditText(comment.text)
+                                  setEditingId(comment.id);
+                                  setEditText(comment.text);
                                 }}
                                 disabled={actionLoading === comment.id}
                                 className="rounded-md p-1 text-muted-foreground/60 transition-colors hover:text-foreground"
@@ -312,7 +318,7 @@ export function CommentSection({
                           )}
                         </div>
                       </motion.div>
-                    )
+                    );
                   })}
                 </div>
               ) : (
@@ -335,10 +341,10 @@ export function CommentSection({
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     onKeyDown={(e) => {
-                      e.stopPropagation()
+                      e.stopPropagation();
                       if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault()
-                        handleSubmit(e)
+                        e.preventDefault();
+                        handleSubmit(e);
                       }
                     }}
                     placeholder={
@@ -353,7 +359,7 @@ export function CommentSection({
                   type="submit"
                   size="sm"
                   disabled={sending || !newComment.trim()}
-                  className="h-[38px] w-[38px] shrink-0 rounded-xl bg-primary p-0 text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40"
+                  className="h-[38px] w-[38px] shrink-0 rounded-xl bg-primary p-0 text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40 place-self-center"
                   aria-label="Send comment"
                 >
                   {sending ? (
@@ -368,5 +374,5 @@ export function CommentSection({
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }

@@ -4,7 +4,15 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import useSWR from "swr";
-import { PanelRightOpen, PanelRightClose, Plus, User, X, Calendar, CalendarDays } from "lucide-react";
+import {
+  PanelRightOpen,
+  PanelRightClose,
+  Plus,
+  User,
+  X,
+  Calendar,
+  CalendarDays,
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { SidebarProfile } from "@/components/dashboard/sidebar-profile";
@@ -26,7 +34,9 @@ export default function DashboardPage() {
   const [panelMode, setPanelMode] = useState<PanelMode>(null);
   const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
   const [filterAthleteId, setFilterAthleteId] = useState<string | null>(null);
-  const [dateFilter, setDateFilter] = useState<"all" | "today" | "7d" | "30d" | "custom">("all");
+  const [dateFilter, setDateFilter] = useState<
+    "all" | "today" | "7d" | "30d" | "custom"
+  >("all");
   const [customDate, setCustomDate] = useState<string>("");
 
   // Build logs URL with tag filters, athlete filter, and date filter
@@ -43,13 +53,45 @@ export default function DashboardPage() {
       params.set("dateFrom", start.toISOString());
       params.set("dateTo", end.toISOString());
     } else if (dateFilter === "7d") {
-      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
-      const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      const start = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() - 6,
+        0,
+        0,
+        0,
+        0,
+      );
+      const end = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        23,
+        59,
+        59,
+        999,
+      );
       params.set("dateFrom", start.toISOString());
       params.set("dateTo", end.toISOString());
     } else if (dateFilter === "30d") {
-      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
-      const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      const start = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() - 29,
+        0,
+        0,
+        0,
+        0,
+      );
+      const end = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        23,
+        59,
+        59,
+        999,
+      );
       params.set("dateFrom", start.toISOString());
       params.set("dateTo", end.toISOString());
     } else if (dateFilter === "custom" && customDate) {
@@ -67,7 +109,7 @@ export default function DashboardPage() {
 
   const { data: logsData, mutate: mutateLogs } = useSWR<{ logs: LogEntry[] }>(
     user ? logsUrl : null,
-    fetcher
+    fetcher,
   );
 
   const { data: tagsData, mutate: mutateTags } = useSWR<{
@@ -81,10 +123,10 @@ export default function DashboardPage() {
     user?.role === "coach" && user?.groupId
       ? `/api/groups?groupId=${user.groupId}`
       : null,
-    fetcher
+    fetcher,
   );
   const athletes = (membersData?.members ?? []).filter(
-    (m) => m.role !== "coach"
+    (m) => m.role !== "coach",
   );
 
   const { data: announcementData, mutate: mutateAnnouncement } = useSWR<{
@@ -105,7 +147,7 @@ export default function DashboardPage() {
 
   const handleToggleTag = useCallback((tag: string) => {
     setActiveTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
     );
   }, []);
 
@@ -140,7 +182,7 @@ export default function DashboardPage() {
         toast.error("Network error");
       }
     },
-    [mutateLogs, mutateTags, selectedLog]
+    [mutateLogs, mutateTags, selectedLog],
   );
 
   const handleViewLog = useCallback((log: LogEntry) => {
@@ -202,7 +244,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
               <span className="text-xs font-bold text-primary-foreground">
-                T
+                TL
               </span>
             </div>
             <span className="text-sm font-semibold text-foreground">Prets</span>
@@ -223,7 +265,11 @@ export default function DashboardPage() {
               variant="ghost"
               size="sm"
               onClick={() =>
-                isPanelOpen ? handleClosePanel() : (user.role !== "coach" ? handleNewLog() : null)
+                isPanelOpen
+                  ? handleClosePanel()
+                  : user.role !== "coach"
+                    ? handleNewLog()
+                    : null
               }
               className="text-muted-foreground hover:text-foreground"
               aria-label={isPanelOpen ? "Close panel" : "Open panel"}
@@ -262,7 +308,10 @@ export default function DashboardPage() {
               {dateFilter !== "all" && (
                 <button
                   type="button"
-                  onClick={() => { setDateFilter("all"); setCustomDate(""); }}
+                  onClick={() => {
+                    setDateFilter("all");
+                    setCustomDate("");
+                  }}
                   className="rounded-md p-0.5 text-muted-foreground transition-colors hover:text-foreground"
                   aria-label="Clear date filter"
                 >
@@ -282,7 +331,10 @@ export default function DashboardPage() {
                 <button
                   key={opt.key}
                   type="button"
-                  onClick={() => { setDateFilter(opt.key); setCustomDate(""); }}
+                  onClick={() => {
+                    setDateFilter(opt.key);
+                    setCustomDate("");
+                  }}
                   className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
                     dateFilter === opt.key
                       ? "bg-primary/10 font-medium text-primary"
@@ -421,7 +473,10 @@ export default function DashboardPage() {
                 <button
                   key={opt.key}
                   type="button"
-                  onClick={() => { setDateFilter(opt.key); setCustomDate(""); }}
+                  onClick={() => {
+                    setDateFilter(opt.key);
+                    setCustomDate("");
+                  }}
                   className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs transition-colors ${
                     dateFilter === opt.key
                       ? "bg-primary/10 font-medium text-primary"
@@ -464,11 +519,17 @@ export default function DashboardPage() {
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   {logs.length} {logs.length === 1 ? "entry" : "entries"}
-                  {(activeTags.length > 0 || dateFilter !== "all") && " (filtered)"}
-                  {filterAthleteId && (() => {
-                    const athlete = athletes.find((a) => a.id === filterAthleteId);
-                    return athlete ? ` · ${athlete.displayName || athlete.email}` : "";
-                  })()}
+                  {(activeTags.length > 0 || dateFilter !== "all") &&
+                    " (filtered)"}
+                  {filterAthleteId &&
+                    (() => {
+                      const athlete = athletes.find(
+                        (a) => a.id === filterAthleteId,
+                      );
+                      return athlete
+                        ? ` · ${athlete.displayName || athlete.email}`
+                        : "";
+                    })()}
                 </p>
               </div>
 
@@ -565,24 +626,26 @@ export default function DashboardPage() {
                     </motion.div>
                   )}
 
-                  {panelMode === "edit" && selectedLog && user.role !== "coach" && (
-                    <motion.div
-                      key={`edit-${selectedLog.id}`}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <LogForm
-                        editLog={selectedLog}
-                        onLogCreated={handleLogCreated}
-                        onClose={() => {
-                          setPanelMode("view");
-                        }}
-                        existingTags={tagNames}
-                      />
-                    </motion.div>
-                  )}
+                  {panelMode === "edit" &&
+                    selectedLog &&
+                    user.role !== "coach" && (
+                      <motion.div
+                        key={`edit-${selectedLog.id}`}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <LogForm
+                          editLog={selectedLog}
+                          onLogCreated={handleLogCreated}
+                          onClose={() => {
+                            setPanelMode("view");
+                          }}
+                          existingTags={tagNames}
+                        />
+                      </motion.div>
+                    )}
                 </AnimatePresence>
               </div>
             </motion.aside>
@@ -627,17 +690,19 @@ export default function DashboardPage() {
                     isCoach={user.role === "coach"}
                   />
                 )}
-                {panelMode === "edit" && selectedLog && user.role !== "coach" && (
-                  <LogForm
-                    editLog={selectedLog}
-                    onLogCreated={() => {
-                      handleLogCreated();
-                      handleClosePanel();
-                    }}
-                    onClose={handleClosePanel}
-                    existingTags={tagNames}
-                  />
-                )}
+                {panelMode === "edit" &&
+                  selectedLog &&
+                  user.role !== "coach" && (
+                    <LogForm
+                      editLog={selectedLog}
+                      onLogCreated={() => {
+                        handleLogCreated();
+                        handleClosePanel();
+                      }}
+                      onClose={handleClosePanel}
+                      existingTags={tagNames}
+                    />
+                  )}
               </motion.div>
             </motion.div>
           )}

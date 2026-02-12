@@ -1,41 +1,41 @@
-"use client"
+"use client";
 
-import React from "react"
-import { useState, useCallback } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { mutate } from "swr"
-import { ArrowLeft, Loader2, Users, Dumbbell } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import React from "react";
+import { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { mutate } from "swr";
+import { ArrowLeft, Loader2, Users, Dumbbell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { toast } from "sonner"
+} from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function AuthPage() {
-  const router = useRouter()
-  const [isLogin, setIsLogin] = useState(true)
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Auth fields
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   // Signup-only fields
-  const [displayName, setDisplayName] = useState("")
-  const [role, setRole] = useState<"athlete" | "coach">("athlete")
+  const [displayName, setDisplayName] = useState("");
+  const [role, setRole] = useState<"athlete" | "coach">("athlete");
 
   const handleAuth = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      setLoading(true)
+      e.preventDefault();
+      setLoading(true);
 
       try {
         if (isLogin) {
@@ -43,21 +43,25 @@ export default function AuthPage() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
-          })
-          const data = await res.json()
+          });
+          const data = await res.json();
           if (!res.ok) {
-            toast.error(data.error || "Something went wrong")
-            setLoading(false)
-            return
+            toast.error(data.error || "Something went wrong");
+            setLoading(false);
+            return;
           }
           // Update SWR cache so dashboard sees the user immediately (avoids redirect race)
-          mutate("/api/auth/session", { user: { ...data.user, group: null } }, { revalidate: true })
-          router.push("/dashboard")
+          mutate(
+            "/api/auth/session",
+            { user: { ...data.user, group: null } },
+            { revalidate: true },
+          );
+          router.push("/dashboard");
         } else {
           if (displayName.trim().length < 2) {
-            toast.error("Display name must be at least 2 characters")
-            setLoading(false)
-            return
+            toast.error("Display name must be at least 2 characters");
+            setLoading(false);
+            return;
           }
           const res = await fetch("/api/auth/signup", {
             method: "POST",
@@ -68,26 +72,30 @@ export default function AuthPage() {
               displayName: displayName.trim(),
               role,
             }),
-          })
-          const data = await res.json()
+          });
+          const data = await res.json();
           if (!res.ok) {
-            toast.error(data.error || "Something went wrong")
-            setLoading(false)
-            return
+            toast.error(data.error || "Something went wrong");
+            setLoading(false);
+            return;
           }
-          toast.success("Account created!")
+          toast.success("Account created!");
           // Update SWR cache so dashboard sees the user immediately (avoids redirect race)
-          mutate("/api/auth/session", { user: { ...data.user, group: null } }, { revalidate: true })
-          router.push("/dashboard")
+          mutate(
+            "/api/auth/session",
+            { user: { ...data.user, group: null } },
+            { revalidate: true },
+          );
+          router.push("/dashboard");
         }
       } catch {
-        toast.error("Network error. Please try again.")
+        toast.error("Network error. Please try again.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [email, password, isLogin, displayName, role, router]
-  )
+    [email, password, isLogin, displayName, role, router],
+  );
 
   return (
     <main className="relative flex min-h-screen items-center justify-center px-6 py-12">
@@ -120,7 +128,7 @@ export default function AuthPage() {
               <CardHeader className="pb-4">
                 <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
                   <span className="text-sm font-bold text-primary-foreground">
-                    T
+                    TL
                   </span>
                 </div>
                 <CardTitle className="text-2xl text-foreground">
@@ -198,9 +206,7 @@ export default function AuthPage() {
                       exit={{ opacity: 0, height: 0 }}
                       className="flex flex-col gap-2"
                     >
-                      <Label className="text-foreground">
-                        I am a...
-                      </Label>
+                      <Label className="text-foreground">I am a...</Label>
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           type="button"
@@ -261,5 +267,5 @@ export default function AuthPage() {
         </AnimatePresence>
       </div>
     </main>
-  )
+  );
 }

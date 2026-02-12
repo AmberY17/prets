@@ -1,37 +1,45 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Users, Lock, Trash2, Pencil, User } from "lucide-react"
-import { format } from "date-fns"
-import { Badge } from "@/components/ui/badge"
-import { CommentSection } from "./comment-section"
+import { motion } from "framer-motion";
+import { Users, Lock, Trash2, Pencil, User } from "lucide-react";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import { CommentSection } from "./comment-section";
 
 export interface LogEntry {
-  id: string
-  emoji: string
-  timestamp: string
-  isGroup: boolean
-  notes: string
-  tags: string[]
-  userId: string
-  userName: string
-  isOwn: boolean
-  createdAt: string
+  id: string;
+  emoji: string;
+  timestamp: string;
+  isGroup: boolean;
+  notes: string;
+  tags: string[];
+  userId: string;
+  userName: string;
+  isOwn: boolean;
+  createdAt: string;
 }
 
 interface LogCardProps {
-  log: LogEntry
-  onDelete: (id: string) => void
-  onEdit: (log: LogEntry) => void
-  onClick: (log: LogEntry) => void
-  index: number
-  currentUserId: string
-  isCoach: boolean
+  log: LogEntry;
+  onDelete: (id: string) => void;
+  onEdit: (log: LogEntry) => void;
+  onClick: (log: LogEntry) => void;
+  index: number;
+  currentUserId: string;
+  isCoach: boolean;
 }
 
-export function LogCard({ log, onDelete, onEdit, onClick, index, currentUserId, isCoach }: LogCardProps) {
-  const formattedDate = format(new Date(log.timestamp), "MMM d, yyyy")
-  const formattedTime = format(new Date(log.timestamp), "h:mm a")
+export function LogCard({
+  log,
+  onDelete,
+  onEdit,
+  onClick,
+  index,
+  currentUserId,
+  isCoach,
+}: LogCardProps) {
+  const formattedDate = format(new Date(log.timestamp), "MMM d, yyyy");
+  const formattedTime = format(new Date(log.timestamp), "h:mm a");
 
   return (
     <motion.div
@@ -49,11 +57,11 @@ export function LogCard({ log, onDelete, onEdit, onClick, index, currentUserId, 
       tabIndex={0}
       onKeyDown={(e) => {
         // Only handle if the event target is the card itself, not child inputs
-        const target = e.target as HTMLElement
-        if (target.tagName === "TEXTAREA" || target.tagName === "INPUT") return
+        const target = e.target as HTMLElement;
+        if (target.tagName === "TEXTAREA" || target.tagName === "INPUT") return;
         if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault()
-          onClick(log)
+          e.preventDefault();
+          onClick(log);
         }
       }}
     >
@@ -95,8 +103,8 @@ export function LogCard({ log, onDelete, onEdit, onClick, index, currentUserId, 
                   <button
                     type="button"
                     onClick={(e) => {
-                      e.stopPropagation()
-                      onEdit(log)
+                      e.stopPropagation();
+                      onEdit(log);
                     }}
                     className="rounded-lg p-1.5 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary"
                     aria-label="Edit log"
@@ -106,8 +114,8 @@ export function LogCard({ log, onDelete, onEdit, onClick, index, currentUserId, 
                   <button
                     type="button"
                     onClick={(e) => {
-                      e.stopPropagation()
-                      onDelete(log.id)
+                      e.stopPropagation();
+                      onDelete(log.id);
                     }}
                     className="rounded-lg p-1.5 text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive"
                     aria-label="Delete log"
@@ -153,7 +161,7 @@ export function LogCard({ log, onDelete, onEdit, onClick, index, currentUserId, 
       </div>
 
       {/* Comment / Feedback Section */}
-      {log.isGroup && (
+      {!log.isGroup && (
         <CommentSection
           logId={log.id}
           isLogOwner={log.isOwn}
@@ -162,5 +170,5 @@ export function LogCard({ log, onDelete, onEdit, onClick, index, currentUserId, 
         />
       )}
     </motion.div>
-  )
+  );
 }
