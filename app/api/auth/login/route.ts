@@ -35,13 +35,14 @@ export async function POST(req: Request) {
       )
     }
 
-    await createSession({
+    const sessionToken = await createSession({
       userId: user._id.toString(),
       email: user.email,
       displayName: user.displayName,
       role: user.role || "athlete",
       groupId: user.groupId || undefined,
     })
+    console.log("[v0] Session created, token:", sessionToken ? "exists" : "null")
 
     return NextResponse.json({
       success: true,

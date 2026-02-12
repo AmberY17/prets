@@ -140,7 +140,9 @@ export default function DashboardPage() {
 
   // Auth redirect
   useEffect(() => {
+    console.log("[v0] Dashboard auth check:", { authLoading, user: user?.email });
     if (!authLoading && !user) {
+      console.log("[v0] No user found, redirecting to /auth");
       router.push("/auth");
     }
   }, [authLoading, user, router]);

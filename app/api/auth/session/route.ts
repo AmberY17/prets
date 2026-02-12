@@ -6,8 +6,10 @@ import { ObjectId } from "mongodb"
 export async function GET() {
   try {
     const session = await getSession()
+    console.log("[v0] Session API called, session:", session ? "exists" : "null")
 
     if (!session) {
+      console.log("[v0] No session found, returning null user")
       return NextResponse.json({ user: null })
     }
 
