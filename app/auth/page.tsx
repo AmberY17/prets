@@ -39,17 +39,22 @@ export default function AuthPage() {
 
       try {
         if (isLogin) {
+          console.log("[v0] Attempting login for:", email);
           const res = await fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
           });
+          console.log("[v0] Login response status:", res.status);
           const data = await res.json();
+          console.log("[v0] Login response data:", data);
           if (!res.ok) {
+            console.log("[v0] Login failed:", data.error);
             toast.error(data.error || "Something went wrong");
             setLoading(false);
             return;
           }
+          console.log("[v0] Login successful, redirecting to dashboard");
           // Update SWR cache so dashboard sees the user immediately (avoids redirect race)
           mutate(
             "/api/auth/session",
