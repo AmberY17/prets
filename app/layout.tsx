@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0e14",
+  themeColor: "#fafafa",
 };
 
 export default function RootLayout({
@@ -31,12 +31,12 @@ export default function RootLayout({
       <body className="font-sans antialiased min-h-screen">
         {children}
         <Toaster
-          theme="dark"
+          theme="light"
           toastOptions={{
             style: {
-              background: "hsl(220, 18%, 7%)",
-              border: "1px solid hsl(220, 14%, 14%)",
-              color: "hsl(210, 20%, 95%)",
+              background: "hsl(var(--card))",
+              border: "1px solid hsl(var(--border))",
+              color: "hsl(var(--foreground))",
             },
           }}
         />

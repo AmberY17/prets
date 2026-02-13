@@ -52,7 +52,7 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
                   onChange(emoji.native);
                   setOpen(false);
                 }}
-                theme="dark"
+                theme="light"
                 set="native"
                 skinTonePosition="search"
                 previewPosition="none"

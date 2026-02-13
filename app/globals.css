@@ -17,40 +17,128 @@
 }
 
 @layer base {
-  :root {
-    --background: 220 20% 4%;
-    --foreground: 210 20% 95%;
-    --card: 220 18% 7%;
-    --card-foreground: 210 20% 95%;
-    --popover: 220 18% 7%;
-    --popover-foreground: 210 20% 95%;
-    --primary: 152 76% 52%;
-    --primary-foreground: 220 20% 4%;
-    --secondary: 220 16% 12%;
-    --secondary-foreground: 210 20% 90%;
-    --muted: 220 14% 10%;
-    --muted-foreground: 215 12% 50%;
-    --accent: 152 76% 52%;
-    --accent-foreground: 220 20% 4%;
+  /* ===== Theme: Green + Amber (default) ===== */
+  :root,
+  [data-theme="green"] {
+    --background: 0 0% 98%;
+    --foreground: 220 15% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 15%;
+    --primary: 152 60% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 10% 94%;
+    --secondary-foreground: 220 15% 25%;
+    --muted: 220 10% 94%;
+    --muted-foreground: 220 8% 46%;
+    --accent: 152 60% 38%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
-    --destructive-foreground: 210 20% 95%;
-    --border: 220 14% 14%;
-    --input: 220 14% 14%;
-    --ring: 152 76% 52%;
-    --chart-1: 152 76% 52%;
-    --chart-2: 190 80% 50%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 10% 88%;
+    --input: 220 10% 88%;
+    --ring: 152 60% 38%;
+    --chart-1: 152 60% 38%;
+    --chart-2: 190 60% 42%;
+    --chart-3: 30 70% 50%;
+    --chart-4: 280 50% 55%;
+    --chart-5: 340 60% 50%;
     --radius: 0.75rem;
-    --sidebar-background: 220 18% 6%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 152 76% 52%;
-    --sidebar-primary-foreground: 220 20% 4%;
-    --sidebar-accent: 220 14% 10%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 220 14% 14%;
-    --sidebar-ring: 152 76% 52%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 15% 25%;
+    --sidebar-primary: 152 60% 38%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 10% 94%;
+    --sidebar-accent-foreground: 220 15% 25%;
+    --sidebar-border: 220 10% 88%;
+    --sidebar-ring: 152 60% 38%;
+    /* Checkin card / new-comment accent */
+    --checkin: 38 92% 50%;
+    --checkin-foreground: 0 0% 100%;
+    --checkin-muted: 38 92% 50%;
+  }
+
+  /* ===== Theme: Blue + Yellow ===== */
+  [data-theme="blue"] {
+    --background: 210 20% 98%;
+    --foreground: 220 15% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 15%;
+    --primary: 217 72% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 14% 93%;
+    --secondary-foreground: 220 15% 25%;
+    --muted: 215 14% 93%;
+    --muted-foreground: 220 8% 46%;
+    --accent: 217 72% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 14% 87%;
+    --input: 215 14% 87%;
+    --ring: 217 72% 50%;
+    --chart-1: 217 72% 50%;
+    --chart-2: 190 60% 42%;
+    --chart-3: 45 85% 50%;
+    --chart-4: 280 50% 55%;
+    --chart-5: 340 60% 50%;
+    --radius: 0.75rem;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 15% 25%;
+    --sidebar-primary: 217 72% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 14% 93%;
+    --sidebar-accent-foreground: 220 15% 25%;
+    --sidebar-border: 215 14% 87%;
+    --sidebar-ring: 217 72% 50%;
+    /* Checkin card / new-comment accent */
+    --checkin: 45 93% 47%;
+    --checkin-foreground: 220 15% 15%;
+    --checkin-muted: 45 93% 47%;
+  }
+
+  /* ===== Theme: Indigo + Rose ===== */
+  [data-theme="indigo"] {
+    --background: 230 15% 98%;
+    --foreground: 220 15% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 15%;
+    --primary: 239 60% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 230 12% 93%;
+    --secondary-foreground: 220 15% 25%;
+    --muted: 230 12% 93%;
+    --muted-foreground: 220 8% 46%;
+    --accent: 239 60% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 230 12% 87%;
+    --input: 230 12% 87%;
+    --ring: 239 60% 55%;
+    --chart-1: 239 60% 55%;
+    --chart-2: 280 50% 55%;
+    --chart-3: 350 65% 55%;
+    --chart-4: 190 60% 42%;
+    --chart-5: 30 70% 50%;
+    --radius: 0.75rem;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 15% 25%;
+    --sidebar-primary: 239 60% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 230 12% 93%;
+    --sidebar-accent-foreground: 220 15% 25%;
+    --sidebar-border: 230 12% 87%;
+    --sidebar-ring: 239 60% 55%;
+    /* Checkin card / new-comment accent */
+    --checkin: 350 70% 55%;
+    --checkin-foreground: 0 0% 100%;
+    --checkin-muted: 350 70% 55%;
   }
 }
 
