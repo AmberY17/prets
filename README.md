@@ -1,27 +1,91 @@
 # Prets
 
-## 🔐 Authentication System
+**Log Your Training, Visually.**
 
-This project implements a secure, stateless authentication flow using JWT (JSON Web Tokens) via the jose library and Next.js Server Actions/Route Handlers.
+Prets is an emoji-first training log platform built for athletes and coaches. Create quick, expressive session logs, get private feedback from your coach, and track progress with powerful filtering—all in one clean dashboard.
 
-### 🏗 Architecture Overview
+_En garde, Prets, Allez!_
 
-The system is split into two layers: a Server-side Session Manager (the source of truth) and a Client-side Hook (for UI state).
+---
 
-### 📁 Core Components
+## Initiatives
 
-#### 1. Session Management (auth.ts)
+- **Visual-first logging** — Replace lengthy forms with emoji-based session capture that makes tracking intuitive and low-friction
+- **Coach–athlete collaboration** — Connect coaches with their groups for session check-ins, announcements, and private 1-on-1 feedback on logs
+- **Privacy by design** — Athletes choose whether to share logs with their coach or keep them private
+- **Fast, delightful UX** — Modern UI with smooth animations and smart filtering so athletes and coaches can focus on training, not software
 
-Handles the lifecycle of the JWT stored in an httpOnly cookie.
+---
 
-- **createSession**: Generates a HS256 signed token valid for 7 days. It sets the cookie with `secure` and `sameSite: lax` flags to prevent CSRF and script injection.
-- **getSession**: Retrieves and verifies the token. If the signature is invalid or expired, it returns null.
-- **deleteSession**: Clears the session cookie for logging out.
+## Main Features
 
-#### 2. Authentication Hook (useAuth.ts)
+### For Athletes
 
-A client-side utility using SWR to manage user state across the application.
+| Feature               | Description                                                                                                              |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Visual Emoji Logs** | Log sessions in seconds with expressive emoji indicators. No complex forms—tap an emoji to capture how your workout felt |
+| **Tags & Filtering**  | Organize logs by tags (e.g., strength, cardio) and filter by date range, tags, and more                                  |
+| **Session Check-Ins** | Respond to coach check-in cards for training sessions with a single tap                                                  |
+| **Privacy Controls**  | Share logs with your coach for feedback or keep them completely private                                                  |
+| **Private Feedback**  | Receive personalized coaching comments directly on your logs—visible only to you and your coach                          |
 
-- **Data Fetching**: Calls the `/api/auth/session` endpoint.
-- **Caching**: Includes a 30-second deduping interval to prevent redundant API calls during navigation.
-- **State**: Provides `user`, `isLoading`, and `mutate` (used to manually refresh the user state after profile updates).
+### For Coaches
+
+| Feature               | Description                                                                  |
+| --------------------- | ---------------------------------------------------------------------------- |
+| **Group Management**  | Create groups, invite athletes, and switch between groups                    |
+| **Session Check-Ins** | Create check-in cards for training sessions; see who has logged in real time |
+| **Athlete Filter**    | Filter the feed by individual athlete to review progress                     |
+| **Session Filter**    | Filter logs by check-in session to see all entries for a given practice      |
+| **Announcements**     | Pin announcements at the top of everyone's feed                              |
+| **Private Comments**  | Leave feedback on athlete logs in a private 1-on-1 thread                    |
+
+### Shared
+
+- **Date range filtering** — All time, today, last 7 days, last 30 days, or custom date picker
+- **Dark/Light theme** — System-aware theme switching
+- **Responsive layout** — Works on mobile and desktop with adaptive panels and filters
+
+---
+
+## Tech Stack
+
+| Layer                  | Technologies                                         |
+| ---------------------- | ---------------------------------------------------- |
+| **Framework**          | Next.js 16 (App Router), React 19                    |
+| **Database**           | MongoDB (NoSQL)                                      |
+| **Auth**               | JWT (jose) in httpOnly cookies, bcrypt for passwords |
+| **Styling**            | Tailwind CSS                                         |
+| **UI Components**      | Radix UI, shadcn/ui                                  |
+| **Data Fetching**      | SWR                                                  |
+| **Forms & Validation** | React Hook Form, Zod                                 |
+| **Animations**         | Framer Motion                                        |
+| **Charts**             | Recharts                                             |
+| **Emoji Picker**       | Emoji Mart                                           |
+| **Toasts**             | Sonner                                               |
+| **Utilities**          | date-fns, Lucide icons                               |
+
+---
+
+## Project Structure
+
+```
+├── app/
+│   ├── api/           # API routes (auth, logs, comments, checkins, announcements, groups, tags)
+│   ├── auth/          # Auth page (login/signup)
+│   ├── dashboard/     # Main dashboard
+│   ├── layout.tsx
+│   └── page.tsx       # Landing page
+├── components/
+│   ├── dashboard/     # Log form, log card, comment section, checkin card, filters, etc.
+│   └── ui/            # shadcn components
+├── hooks/             # useAuth, useToast
+├── lib/               # auth, mongodb, utils
+└── ...
+```
+
+---
+
+## License
+
+Private project.
