@@ -79,7 +79,7 @@ _En garde, Prets, Allez!_
 ├── components/
 │   ├── dashboard/     # Log form, log card, comment section, checkin card, filters, etc.
 │   └── ui/            # shadcn components
-├── hooks/             # useAuth, useToast
+├── hooks/             # useAuth
 ├── lib/               # auth, mongodb, utils
 └── ...
 ```
