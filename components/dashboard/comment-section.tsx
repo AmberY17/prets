@@ -317,7 +317,7 @@ export function CommentSection({
                                   setEditText(comment.text);
                                 }}
                                 disabled={actionLoading === comment.id}
-                                className="rounded-md p-1 text-muted-foreground/60 transition-colors hover:text-foreground"
+                                className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground"
                                 aria-label="Edit comment"
                               >
                                 <Pencil className="h-3 w-3" />
@@ -326,7 +326,7 @@ export function CommentSection({
                                 type="button"
                                 onClick={() => handleDelete(comment.id)}
                                 disabled={actionLoading === comment.id}
-                                className="rounded-md p-1 text-muted-foreground/60 transition-colors hover:text-destructive"
+                                className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                                 aria-label="Delete comment"
                               >
                                 {actionLoading === comment.id ? (

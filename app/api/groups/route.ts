@@ -79,6 +79,8 @@ export async function POST(req: Request) {
         name: name.trim(),
         code,
         coachId: session.userId,
+        coachIds: [session.userId],
+        roles: [],
         createdAt: new Date(),
       })
 
@@ -92,6 +94,13 @@ export async function POST(req: Request) {
           $addToSet: { groupIds: groupId },
         }
       )
+
+      // Create group membership for role tracking (coach creating = first member)
+      await db.collection("groupMemberships").insertOne({
+        userId: session.userId,
+        groupId,
+        roleIds: [],
+      })
 
       await createSession({
         ...session,
@@ -138,6 +147,13 @@ export async function POST(req: Request) {
           { _id: new ObjectId(session.userId) },
           { $set: { groupId } }
         )
+        // Ensure coach is in coachIds (e.g. migrated or re-joined)
+        if (user.role === "coach") {
+          await db.collection("groups").updateOne(
+            { _id: group._id },
+            { $addToSet: { coachIds: session.userId } }
+          )
+        }
 
         await createSession({
           ...session,
@@ -162,6 +178,21 @@ export async function POST(req: Request) {
           $addToSet: { groupIds: groupId },
         }
       )
+
+      // Create group membership for role tracking
+      await db.collection("groupMemberships").updateOne(
+        { userId: session.userId, groupId },
+        { $setOnInsert: { userId: session.userId, groupId, roleIds: [] } },
+        { upsert: true }
+      )
+
+      // If coach joined, add to group's coachIds for equal management access
+      if (user.role === "coach") {
+        await db.collection("groups").updateOne(
+          { _id: group._id },
+          { $addToSet: { coachIds: session.userId } }
+        )
+      }
 
       await createSession({
         ...session,
@@ -251,6 +282,20 @@ export async function POST(req: Request) {
         (id: string) => id !== currentGroupId
       )
 
+      // If coach leaving, remove from group's coachIds
+      if (user.role === "coach") {
+        await db.collection("groups").updateOne(
+          { _id: new ObjectId(currentGroupId) },
+          { $pull: { coachIds: session.userId } }
+        )
+      }
+
+      // Remove from groupMemberships
+      await db.collection("groupMemberships").deleteOne({
+        userId: session.userId,
+        groupId: currentGroupId,
+      })
+
       // Switch to another group if available, otherwise null
       const newActiveGroupId = updatedGroupIds.length > 0 ? updatedGroupIds[0] : null
 
@@ -296,11 +341,16 @@ export async function GET(req: Request) {
 
     const db = await getDb()
 
-    // Mode: fetch all groups created by this coach
+    // Mode: fetch all groups this coach can manage (creator or in coachIds)
     if (mode === "coach-groups") {
       const groups = await db
         .collection("groups")
-        .find({ coachId: session.userId })
+        .find({
+          $or: [
+            { coachId: session.userId },
+            { coachIds: session.userId },
+          ],
+        })
         .sort({ createdAt: -1 })
         .toArray()
 
@@ -348,17 +398,32 @@ export async function GET(req: Request) {
       })
     }
 
-    // Default: fetch members for a specific group
+    // Default: fetch members for a specific group (with roles and roleIds)
     if (!groupId) {
-      return NextResponse.json({ members: [] })
+      return NextResponse.json({ members: [], roles: [] })
     }
 
-    // Find members using both old groupId and new groupIds
+    const group = await db.collection("groups").findOne({
+      _id: new ObjectId(groupId),
+    })
+    const roles = group?.roles ?? []
+
     const members = await db
       .collection("users")
       .find({ $or: [{ groupIds: groupId }, { groupId: groupId }] })
       .project({ password: 0 })
       .toArray()
+
+    const membershipDocs = await db
+      .collection("groupMemberships")
+      .find({ groupId, userId: { $in: members.map((m) => m._id.toString()) } })
+      .toArray()
+    const roleIdsByUser = new Map(
+      membershipDocs.map((m: { userId: string; roleIds: string[] }) => [
+        m.userId,
+        m.roleIds ?? [],
+      ])
+    )
 
     return NextResponse.json({
       members: members.map((m) => ({
@@ -366,7 +431,9 @@ export async function GET(req: Request) {
         displayName: m.displayName,
         email: m.email,
         role: m.role || "athlete",
+        roleIds: roleIdsByUser.get(m._id.toString()) ?? [],
       })),
+      roles,
     })
   } catch (error) {
     console.error("Get group members error:", error)

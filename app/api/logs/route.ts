@@ -13,6 +13,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url)
     const tags = searchParams.getAll("tag")
     const filterUserId = searchParams.get("userId") // Filter by specific athlete
+    const filterRoleId = searchParams.get("roleId") // Filter by group role
     const dateFrom = searchParams.get("dateFrom")
     const dateTo = searchParams.get("dateTo")
     const filterCheckinId = searchParams.get("checkinId") // Filter by check-in session
@@ -35,7 +36,18 @@ export async function GET(req: Request) {
         .find({ $or: [{ groupIds: userGroupId }, { groupId: userGroupId }] })
         .project({ _id: 1 })
         .toArray()
-      const memberIds = groupMembers.map((m) => m._id.toString())
+      let memberIds = groupMembers.map((m) => m._id.toString())
+
+      // Filter by role: restrict to athletes with that roleId
+      if (filterRoleId && currentUser?.role === "coach") {
+        const withRole = await db
+          .collection("groupMemberships")
+          .find({ groupId: userGroupId, roleIds: filterRoleId })
+          .project({ userId: 1 })
+          .toArray()
+        const roleMemberIds = withRole.map((m: { userId: string }) => m.userId)
+        memberIds = memberIds.filter((id) => roleMemberIds.includes(id))
+      }
 
       if (filterUserId && currentUser?.role === "coach" && memberIds.includes(filterUserId)) {
         // Coach filtering by specific athlete: show logs shared with coach

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import useSWR from "swr";
 import {
@@ -10,6 +11,8 @@ import {
   X,
   Calendar,
   CalendarDays,
+  ClipboardCheck,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -40,6 +43,7 @@ export default function DashboardPage() {
   >("all");
   const [customDate, setCustomDate] = useState<string>("");
   const [filterSessionId, setFilterSessionId] = useState<string | null>(null);
+  const [filterRoleId, setFilterRoleId] = useState<string | null>(null);
   const [checkinPrefill, setCheckinPrefill] = useState<{
     timestamp: string;
     checkinId: string;
@@ -51,6 +55,7 @@ export default function DashboardPage() {
     activeTags.forEach((t) => params.append("tag", t));
     if (filterAthleteId) params.set("userId", filterAthleteId);
     if (filterSessionId) params.set("checkinId", filterSessionId);
+    if (filterRoleId) params.set("roleId", filterRoleId);
 
     // Date filter
     const now = new Date();
@@ -123,9 +128,10 @@ export default function DashboardPage() {
     tags: { id: string; name: string }[];
   }>(user ? "/api/tags" : null, fetcher);
 
-  // Fetch group members for coach athlete filter
+  // Fetch group members and roles for coach filters
   const { data: membersData } = useSWR<{
     members: { id: string; displayName: string; email: string; role: string }[];
+    roles: { id: string; name: string }[];
   }>(
     user?.role === "coach" && user?.groupId
       ? `/api/groups?groupId=${user.groupId}`
@@ -135,6 +141,7 @@ export default function DashboardPage() {
   const athletes = (membersData?.members ?? []).filter(
     (m) => m.role !== "coach",
   );
+  const groupRoles = membersData?.roles ?? [];
 
   // Fetch active check-ins for the group
   const { data: checkinsData, mutate: mutateCheckins } = useSWR<{
@@ -289,6 +296,30 @@ export default function DashboardPage() {
             <span className="text-sm font-semibold text-foreground">Prets</span>
           </div>
           <div className="flex items-center gap-2">
+            {user.role === "coach" && user.groupId && (
+              <>
+                <Link href="/dashboard/group">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2 text-muted-foreground hover:text-foreground"
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span className="hidden sm:inline">Manage Group</span>
+                  </Button>
+                </Link>
+                <Link href="/dashboard/attendance">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2 text-muted-foreground hover:text-foreground"
+                  >
+                    <ClipboardCheck className="h-4 w-4" />
+                    <span className="hidden sm:inline">Attendance</span>
+                  </Button>
+                </Link>
+              </>
+            )}
             {user.role !== "coach" && (
               <Button
                 variant="ghost"
@@ -435,28 +466,101 @@ export default function DashboardPage() {
                   <User className="h-3 w-3" />
                   All Athletes
                 </button>
+                <div
+                  className={`flex flex-col gap-0.5 ${
+                    athletes.length > 5
+                      ? "max-h-32 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                      : ""
+                  }`}
+                >
                 {athletes.map((athlete) => (
+                    <button
+                      key={athlete.id}
+                      type="button"
+                      onClick={() => handleFilterAthlete(athlete.id)}
+                      className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
+                        filterAthleteId === athlete.id
+                          ? "bg-primary/10 font-medium text-primary"
+                          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      }`}
+                    >
+                      <User className="h-3 w-3" />
+                      {athlete.displayName || athlete.email}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            )}
+
+          {/* Role Filter (Coach only) */}
+          {user.role === "coach" && groupRoles.length > 0 && (
+            <div className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Filter by Role
+                </h3>
+                {filterRoleId && (
                   <button
-                    key={athlete.id}
                     type="button"
-                    onClick={() => handleFilterAthlete(athlete.id)}
+                    onClick={() => setFilterRoleId(null)}
+                    className="rounded-md p-0.5 text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label="Clear role filter"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => setFilterRoleId(null)}
+                  className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
+                    !filterRoleId
+                      ? "bg-primary/10 font-medium text-primary"
+                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  }`}
+                >
+                  All Roles
+                </button>
+                <div
+                  className={`flex flex-col gap-0.5 ${
+                    groupRoles.length > 5
+                      ? "max-h-32 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                      : ""
+                  }`}
+                >
+                {groupRoles.map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() =>
+                      setFilterRoleId((prev) => (prev === r.id ? null : r.id))
+                    }
                     className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
-                      filterAthleteId === athlete.id
+                      filterRoleId === r.id
                         ? "bg-primary/10 font-medium text-primary"
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                     }`}
                   >
-                    <User className="h-3 w-3" />
-                    {athlete.displayName || athlete.email}
+                    {r.name}
                   </button>
                 ))}
+                </div>
               </div>
             </div>
           )}
-        </aside>
+          </aside>
 
         {/* Middle Column: Log Feed */}
-        <main className="flex-1 overflow-y-auto scrollbar-hidden p-6">
+        <main
+          className="flex-1 overflow-y-auto scrollbar-hidden p-6"
+          onClick={() => {
+            if (user.role === "coach" && panelMode === "view") handleClosePanel();
+          }}
+          role={user.role === "coach" && panelMode === "view" ? "button" : undefined}
+          tabIndex={user.role === "coach" && panelMode === "view" ? 0 : undefined}
+        >
           <div className="mx-auto max-w-2xl">
             {/* Mobile tag filter (athletes only) */}
             {user.role !== "coach" && (
@@ -467,6 +571,39 @@ export default function DashboardPage() {
                   onToggle={handleToggleTag}
                   onClear={handleClearTags}
                 />
+              </div>
+            )}
+
+            {/* Mobile role filter (Coach only) */}
+            {user.role === "coach" && groupRoles.length > 0 && (
+              <div className="mb-4 flex flex-wrap gap-1.5 lg:hidden">
+                <button
+                  type="button"
+                  onClick={() => setFilterRoleId(null)}
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs transition-colors ${
+                    !filterRoleId
+                      ? "bg-primary/10 font-medium text-primary"
+                      : "bg-secondary text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  All Roles
+                </button>
+                {groupRoles.map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() =>
+                      setFilterRoleId((prev) => (prev === r.id ? null : r.id))
+                    }
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs transition-colors ${
+                      filterRoleId === r.id
+                        ? "bg-primary/10 font-medium text-primary"
+                        : "bg-secondary text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {r.name}
+                  </button>
+                ))}
               </div>
             )}
 
@@ -575,7 +712,8 @@ export default function DashboardPage() {
                   {logs.length} {logs.length === 1 ? "entry" : "entries"}
                   {(activeTags.length > 0 ||
                     dateFilter !== "all" ||
-                    filterSessionId) &&
+                    filterSessionId ||
+                    filterRoleId) &&
                     " (filtered)"}
                   {filterAthleteId &&
                     (() => {

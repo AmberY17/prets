@@ -200,7 +200,7 @@ export function LogForm({ onLogCreated, onClose, editLog, existingTags = [], pre
             }`}
           >
             <Eye className="h-4 w-4" />
-            <span>Shared with coach</span>
+            <span>Shared</span>
           </button>
           <button
             type="button"
@@ -241,8 +241,9 @@ export function LogForm({ onLogCreated, onClose, editLog, existingTags = [], pre
       {/* Submit */}
       <Button
         type="submit"
+        variant="ghost-primary"
         disabled={loading || !emoji}
-        className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+        className="w-full"
       >
         {loading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
