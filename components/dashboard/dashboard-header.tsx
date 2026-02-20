@@ -26,9 +26,9 @@ export function DashboardHeader({ user, onNewLog }: DashboardHeaderProps) {
             <>
               <Link href="/dashboard/group">
                 <Button
-                  variant="ghost"
+                  variant="ghost-secondary"
                   size="sm"
-                  className="gap-2 text-muted-foreground hover:text-foreground"
+                  className="gap-2"
                 >
                   <Settings className="h-4 w-4" />
                   <span className="hidden sm:inline">Manage Group</span>
@@ -36,9 +36,9 @@ export function DashboardHeader({ user, onNewLog }: DashboardHeaderProps) {
               </Link>
               <Link href="/dashboard/attendance">
                 <Button
-                  variant="ghost"
+                  variant="ghost-secondary"
                   size="sm"
-                  className="gap-2 text-muted-foreground hover:text-foreground"
+                  className="gap-2"
                 >
                   <ClipboardCheck className="h-4 w-4" />
                   <span className="hidden sm:inline">Attendance</span>
@@ -48,10 +48,10 @@ export function DashboardHeader({ user, onNewLog }: DashboardHeaderProps) {
           )}
           {user.role !== "coach" && onNewLog && (
             <Button
-              variant="ghost"
+              variant="ghost-secondary"
               size="sm"
               onClick={onNewLog}
-              className="gap-2 text-muted-foreground hover:text-foreground"
+              className="gap-2"
             >
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">New Log</span>

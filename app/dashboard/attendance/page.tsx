@@ -30,7 +30,9 @@ type AttendanceStatus = "present" | "absent" | "excused" | null;
 export default function AttendancePage() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
-  const [selectedCheckinId, setSelectedCheckinId] = useState<string | null>(null);
+  const [selectedCheckinId, setSelectedCheckinId] = useState<string | null>(
+    null,
+  );
   const [sessionDropdownOpen, setSessionDropdownOpen] = useState(false);
   const [sessionSearch, setSessionSearch] = useState("");
   const [entries, setEntries] = useState<Record<string, AttendanceStatus>>({});
@@ -42,7 +44,10 @@ export default function AttendancePage() {
 
   const filteredCheckins = sessionSearch.trim()
     ? checkins.filter((c) => {
-        const label = (c.title || "Session") + " " + format(new Date(c.sessionDate), "MMM d, yyyy");
+        const label =
+          (c.title || "Session") +
+          " " +
+          format(new Date(c.sessionDate), "MMM d, yyyy");
         return label.toLowerCase().includes(sessionSearch.trim().toLowerCase());
       })
     : checkins;
@@ -50,7 +55,10 @@ export default function AttendancePage() {
   useEffect(() => {
     if (!sessionDropdownOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
-      if (sessionDropdownRef.current && !sessionDropdownRef.current.contains(e.target as Node)) {
+      if (
+        sessionDropdownRef.current &&
+        !sessionDropdownRef.current.contains(e.target as Node)
+      ) {
         setSessionDropdownOpen(false);
       }
     };
@@ -58,10 +66,9 @@ export default function AttendancePage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [sessionDropdownOpen]);
 
-  const { data: checkinsData } = useSWR<{ checkins: { id: string; title: string | null; sessionDate: string }[] }>(
-    user?.groupId ? "/api/checkins?mode=all" : null,
-    fetcher
-  );
+  const { data: checkinsData } = useSWR<{
+    checkins: { id: string; title: string | null; sessionDate: string }[];
+  }>(user?.groupId ? "/api/checkins?mode=all" : null, fetcher);
 
   const attendanceUrl =
     user && selectedCheckinId
@@ -69,7 +76,7 @@ export default function AttendancePage() {
       : null;
   const { data: attendanceData, mutate: mutateAttendance } = useSWR(
     attendanceUrl,
-    fetcher
+    fetcher,
   );
 
   useEffect(() => {
@@ -162,7 +169,9 @@ export default function AttendancePage() {
             </Link>
             <div className="h-4 w-px bg-border" />
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-              <span className="text-xs font-bold text-primary-foreground">TL</span>
+              <span className="text-xs font-bold text-primary-foreground">
+                TL
+              </span>
             </div>
             <span className="text-sm font-semibold text-foreground">
               Attendance
@@ -181,7 +190,7 @@ export default function AttendancePage() {
                 Join a group to take attendance.
               </p>
               <Link href="/dashboard">
-                <Button variant="outline" size="sm" className="mt-4">
+                <Button variant="ghost-primary" size="sm" className="mt-4">
                   Go to Dashboard
                 </Button>
               </Link>
@@ -193,7 +202,7 @@ export default function AttendancePage() {
                 Create a check-in session first.
               </p>
               <Link href="/dashboard">
-                <Button variant="outline" size="sm" className="mt-4">
+                <Button variant="ghost-primary" size="sm" className="mt-4">
                   Go to Dashboard
                 </Button>
               </Link>
@@ -281,7 +290,10 @@ export default function AttendancePage() {
                       {selectedCheckin.title || "Session"}
                     </h2>
                     <p className="text-xs text-muted-foreground">
-                      {format(new Date(selectedCheckin.sessionDate), "EEEE, MMMM d, yyyy")}
+                      {format(
+                        new Date(selectedCheckin.sessionDate),
+                        "EEEE, MMMM d, yyyy",
+                      )}
                     </p>
                   </div>
                   <div className="divide-y divide-border">
@@ -304,9 +316,19 @@ export default function AttendancePage() {
                           <div className="flex gap-1">
                             {(
                               [
-                                ["present", "Present", CheckCircle2, "text-green-600"],
+                                [
+                                  "present",
+                                  "Present",
+                                  CheckCircle2,
+                                  "text-green-600",
+                                ],
                                 ["absent", "Absent", XCircle, "text-red-600"],
-                                ["excused", "Excused", MinusCircle, "text-amber-600"],
+                                [
+                                  "excused",
+                                  "Excused",
+                                  MinusCircle,
+                                  "text-amber-600",
+                                ],
                               ] as const
                             ).map(([status, label, Icon, color]) => (
                               <button
@@ -315,7 +337,9 @@ export default function AttendancePage() {
                                 onClick={() =>
                                   handleSetStatus(
                                     athlete.id,
-                                    entries[athlete.id] === status ? null : status
+                                    entries[athlete.id] === status
+                                      ? null
+                                      : status,
                                   )
                                 }
                                 className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
@@ -337,6 +361,7 @@ export default function AttendancePage() {
                   {athletes.length > 0 && (
                     <div className="border-t border-border px-4 py-3">
                       <Button
+                        variant="ghost-primary"
                         onClick={handleSave}
                         disabled={saving}
                         className="gap-2"

@@ -336,10 +336,10 @@ export function SidebarProfile({
         <div>
           {!showGroupAction && !user.group ? (
             <Button
-              variant="outline"
+              variant="ghost-primary"
               size="sm"
               onClick={() => setShowGroupAction(true)}
-              className="w-full gap-2 border-border bg-transparent text-muted-foreground hover:text-foreground"
+              className="w-full gap-2"
             >
               <Users className="h-3.5 w-3.5" />
               {user.role === "coach" ? "Create or Join Group" : "Join a Group"}
@@ -412,13 +412,13 @@ export function SidebarProfile({
                   </Button>
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="ghost-secondary"
                     size="sm"
                     onClick={() => {
                       setShowGroupAction(false);
                       setGroupInput("");
                     }}
-                    className="h-7 text-xs text-muted-foreground"
+                    className="h-7 text-xs"
                   >
                     Cancel
                   </Button>
@@ -430,10 +430,10 @@ export function SidebarProfile({
       )}
 
       <Button
-        variant="ghost"
+        variant="ghost-secondary"
         size="sm"
         onClick={handleLogout}
-        className="w-full gap-2 text-muted-foreground hover:text-foreground"
+        className="w-full gap-2"
       >
         <LogOut className="h-4 w-4" />
         Sign Out

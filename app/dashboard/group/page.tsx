@@ -55,8 +55,12 @@ export default function GroupManagementPage() {
   const [transferDropdownOpen, setTransferDropdownOpen] = useState(false);
   const [transferSearch, setTransferSearch] = useState("");
   const [saving, setSaving] = useState(false);
-  const [roleDropdownAthleteId, setRoleDropdownAthleteId] = useState<string | null>(null);
-  const [removeConfirmUserId, setRemoveConfirmUserId] = useState<string | null>(null);
+  const [roleDropdownAthleteId, setRoleDropdownAthleteId] = useState<
+    string | null
+  >(null);
+  const [removeConfirmUserId, setRemoveConfirmUserId] = useState<string | null>(
+    null,
+  );
   const [deleteRoleConfirmOpen, setDeleteRoleConfirmOpen] = useState(false);
   const transferDropdownRef = useRef<HTMLDivElement>(null);
   const roleDropdownRef = useRef<HTMLDivElement>(null);
@@ -64,7 +68,10 @@ export default function GroupManagementPage() {
   useEffect(() => {
     if (!transferDropdownOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
-      if (transferDropdownRef.current && !transferDropdownRef.current.contains(e.target as Node)) {
+      if (
+        transferDropdownRef.current &&
+        !transferDropdownRef.current.contains(e.target as Node)
+      ) {
         setTransferDropdownOpen(false);
       }
     };
@@ -75,7 +82,10 @@ export default function GroupManagementPage() {
   useEffect(() => {
     if (!roleDropdownAthleteId) return;
     const handleClickOutside = (e: MouseEvent) => {
-      if (roleDropdownRef.current && !roleDropdownRef.current.contains(e.target as Node)) {
+      if (
+        roleDropdownRef.current &&
+        !roleDropdownRef.current.contains(e.target as Node)
+      ) {
         setRoleDropdownAthleteId(null);
       }
     };
@@ -83,14 +93,15 @@ export default function GroupManagementPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [roleDropdownAthleteId]);
 
-  const groupsUrl = user?.role === "coach" ? "/api/groups?mode=coach-groups" : null;
-  const { data: coachGroupsData } = useSWR<{ groups: { id: string; name: string }[] }>(
-    groupsUrl,
-    fetcher
-  );
+  const groupsUrl =
+    user?.role === "coach" ? "/api/groups?mode=coach-groups" : null;
+  const { data: coachGroupsData } = useSWR<{
+    groups: { id: string; name: string }[];
+  }>(groupsUrl, fetcher);
 
-  const membersUrl =
-    user?.groupId ? `/api/groups?groupId=${user.groupId}` : null;
+  const membersUrl = user?.groupId
+    ? `/api/groups?groupId=${user.groupId}`
+    : null;
   const { data: membersData, mutate: mutateMembers } = useSWR<{
     members: Member[];
     roles: Role[];
@@ -102,13 +113,15 @@ export default function GroupManagementPage() {
     }
   }, [authLoading, user, router]);
 
-  const athletes = (membersData?.members ?? []).filter((m) => m.role !== "coach");
+  const athletes = (membersData?.members ?? []).filter(
+    (m) => m.role !== "coach",
+  );
   const roles = membersData?.roles ?? [];
   const coachGroups = coachGroupsData?.groups ?? [];
   const transferableGroups = coachGroups.filter((g) => g.id !== user?.groupId);
   const filteredTransferGroups = transferSearch.trim()
     ? transferableGroups.filter((g) =>
-        g.name.toLowerCase().includes(transferSearch.trim().toLowerCase())
+        g.name.toLowerCase().includes(transferSearch.trim().toLowerCase()),
       )
     : transferableGroups;
 
@@ -148,7 +161,10 @@ export default function GroupManagementPage() {
       const res = await fetch(`/api/groups/${user.groupId}/roles`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ roleId: editingRoleId, name: newRoleName.trim() }),
+        body: JSON.stringify({
+          roleId: editingRoleId,
+          name: newRoleName.trim(),
+        }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -172,7 +188,7 @@ export default function GroupManagementPage() {
     try {
       const res = await fetch(
         `/api/groups/${user.groupId}/roles?roleId=${id}`,
-        { method: "DELETE" }
+        { method: "DELETE" },
       );
       if (!res.ok) {
         const data = await res.json();
@@ -294,7 +310,9 @@ export default function GroupManagementPage() {
             </Link>
             <div className="h-4 w-px bg-border" />
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-              <span className="text-xs font-bold text-primary-foreground">TL</span>
+              <span className="text-xs font-bold text-primary-foreground">
+                TL
+              </span>
             </div>
             <span className="text-sm font-semibold text-foreground">
               Manage Group
@@ -313,7 +331,7 @@ export default function GroupManagementPage() {
                 Join a group to manage it.
               </p>
               <Link href="/dashboard">
-                <Button variant="outline" size="sm" className="mt-4">
+                <Button variant="ghost-primary" size="sm" className="mt-4">
                   Go to Dashboard
                 </Button>
               </Link>
@@ -327,7 +345,8 @@ export default function GroupManagementPage() {
                   Roles
                 </h2>
                 <p className="mb-4 text-xs text-muted-foreground">
-                  Create custom roles (e.g. Sabre, Foil, Epee) and assign them to athletes.
+                  Create custom roles (e.g. Sabre, Foil, Epee) and assign them
+                  to athletes.
                 </p>
                 <div className="mb-4 flex flex-wrap items-center gap-2">
                   <Input
@@ -350,10 +369,17 @@ export default function GroupManagementPage() {
                         onClick={handleUpdateRole}
                         disabled={saving || !newRoleName.trim()}
                       >
-                        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                        {saving ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Check className="h-4 w-4" />
+                        )}
                         Update
                       </Button>
-                      <AlertDialog open={deleteRoleConfirmOpen} onOpenChange={setDeleteRoleConfirmOpen}>
+                      <AlertDialog
+                        open={deleteRoleConfirmOpen}
+                        onOpenChange={setDeleteRoleConfirmOpen}
+                      >
                         <Button
                           variant="ghost-destructive"
                           onClick={() => setDeleteRoleConfirmOpen(true)}
@@ -363,7 +389,9 @@ export default function GroupManagementPage() {
                         </Button>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure you want to delete?</AlertDialogTitle>
+                            <AlertDialogTitle>
+                              Are you sure you want to delete?
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
                               Athletes will lose this role assignment.
                             </AlertDialogDescription>
@@ -393,7 +421,11 @@ export default function GroupManagementPage() {
                       onClick={handleAddRole}
                       disabled={addingRole || !newRoleName.trim()}
                     >
-                      {addingRole ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                      {addingRole ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Plus className="h-4 w-4" />
+                      )}
                       Add
                     </Button>
                   )}
@@ -427,7 +459,8 @@ export default function GroupManagementPage() {
                 </h2>
                 {athletes.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    No athletes in this group yet. Share the group code to invite them.
+                    No athletes in this group yet. Share the group code to
+                    invite them.
                   </p>
                 ) : (
                   <div className="space-y-4">
@@ -440,19 +473,27 @@ export default function GroupManagementPage() {
                           <p className="font-medium text-foreground">
                             {a.displayName || a.email}
                           </p>
-                          <p className="text-xs text-muted-foreground">{a.email}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {a.email}
+                          </p>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                           {/* Role multi-select dropdown */}
                           {roles.length > 0 && (
                             <div
                               className="relative"
-                              ref={roleDropdownAthleteId === a.id ? roleDropdownRef : undefined}
+                              ref={
+                                roleDropdownAthleteId === a.id
+                                  ? roleDropdownRef
+                                  : undefined
+                              }
                             >
                               <button
                                 type="button"
                                 onClick={() =>
-                                  setRoleDropdownAthleteId((prev) => (prev === a.id ? null : a.id))
+                                  setRoleDropdownAthleteId((prev) =>
+                                    prev === a.id ? null : a.id,
+                                  )
                                 }
                                 className="flex min-w-[120px] items-center justify-between gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary/80 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                               >
@@ -461,7 +502,11 @@ export default function GroupManagementPage() {
                                     ? "No roles"
                                     : a.roleIds.length <= 2
                                       ? a.roleIds
-                                          .map((rid) => roles.find((r) => r.id === rid)?.name ?? rid)
+                                          .map(
+                                            (rid) =>
+                                              roles.find((r) => r.id === rid)
+                                                ?.name ?? rid,
+                                          )
                                           .join(", ")
                                       : `${a.roleIds.length} roles`}
                                 </span>
@@ -489,7 +534,9 @@ export default function GroupManagementPage() {
                                           onChange={(e) => {
                                             const next = e.target.checked
                                               ? [...a.roleIds, r.id]
-                                              : a.roleIds.filter((id) => id !== r.id);
+                                              : a.roleIds.filter(
+                                                  (id) => id !== r.id,
+                                                );
                                             handleAssignRoles(a.id, next);
                                           }}
                                           className="rounded border-border"
@@ -504,16 +551,23 @@ export default function GroupManagementPage() {
                           )}
                           {transferUserId === a.id ? (
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                              <div className="relative" ref={transferDropdownRef}>
+                              <div
+                                className="relative"
+                                ref={transferDropdownRef}
+                              >
                                 <button
                                   type="button"
-                                  onClick={() => setTransferDropdownOpen((prev) => !prev)}
+                                  onClick={() =>
+                                    setTransferDropdownOpen((prev) => !prev)
+                                  }
                                   className="flex min-w-[160px] items-center justify-between gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary/80 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                 >
                                   <span className="flex items-center gap-2 truncate">
                                     <Users className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                                     {transferGroupId
-                                      ? transferableGroups.find((g) => g.id === transferGroupId)?.name ?? "Select group"
+                                      ? (transferableGroups.find(
+                                          (g) => g.id === transferGroupId,
+                                        )?.name ?? "Select group")
                                       : "Select group"}
                                   </span>
                                   <ChevronDown
@@ -526,7 +580,9 @@ export default function GroupManagementPage() {
                                       <input
                                         type="text"
                                         value={transferSearch}
-                                        onChange={(e) => setTransferSearch(e.target.value)}
+                                        onChange={(e) =>
+                                          setTransferSearch(e.target.value)
+                                        }
                                         placeholder="Search groups..."
                                         className="mx-1 rounded-md border border-border bg-secondary px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                                       />
@@ -553,7 +609,9 @@ export default function GroupManagementPage() {
                                             }`}
                                           >
                                             <Users className="h-3 w-3 shrink-0" />
-                                            <span className="flex-1 truncate">{g.name}</span>
+                                            <span className="flex-1 truncate">
+                                              {g.name}
+                                            </span>
                                             {transferGroupId === g.id && (
                                               <Check className="h-3 w-3 shrink-0 text-primary" />
                                             )}
@@ -601,7 +659,9 @@ export default function GroupManagementPage() {
                               </Button>
                               <AlertDialog
                                 open={removeConfirmUserId === a.id}
-                                onOpenChange={(open) => !open && setRemoveConfirmUserId(null)}
+                                onOpenChange={(open) =>
+                                  !open && setRemoveConfirmUserId(null)
+                                }
                               >
                                 <Button
                                   size="sm"
@@ -610,27 +670,35 @@ export default function GroupManagementPage() {
                                   disabled={saving}
                                   className="gap-1 text-xs"
                                 >
-                                <UserMinus className="h-3 w-3" />
-                                Remove
-                              </Button>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Are you sure you want to remove?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This athlete will be removed from the group.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => removeConfirmUserId && handleRemoveAthlete(removeConfirmUserId)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  >
-                                    Remove
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                                  <UserMinus className="h-3 w-3" />
+                                  Remove
+                                </Button>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Are you sure you want to remove?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This athlete will be removed from the
+                                      group.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                      Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() =>
+                                        removeConfirmUserId &&
+                                        handleRemoveAthlete(removeConfirmUserId)
+                                      }
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Remove
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </>
                           )}
                         </div>

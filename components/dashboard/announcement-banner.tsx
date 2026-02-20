@@ -177,10 +177,10 @@ export function AnnouncementBanner({
               exit={{ opacity: 0 }}
             >
               <Button
-                variant="outline"
+                variant="ghost-primary"
                 size="sm"
                 onClick={() => setIsComposing(true)}
-                className="w-full gap-2 border-dashed border-border bg-transparent text-muted-foreground hover:border-primary/30 hover:text-foreground"
+                className="w-full gap-2"
               >
                 <Megaphone className="h-3.5 w-3.5" />
                 {announcement ? "Update Announcement" : "Post Announcement"}
@@ -218,13 +218,13 @@ export function AnnouncementBanner({
                 <div className="flex gap-2">
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="ghost-secondary"
                     size="sm"
                     onClick={() => {
                       setIsComposing(false)
                       setText("")
                     }}
-                    className="h-7 text-xs text-muted-foreground"
+                    className="h-7 text-xs"
                   >
                     Cancel
                   </Button>

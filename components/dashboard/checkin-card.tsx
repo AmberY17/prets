@@ -253,10 +253,10 @@ export function CheckinCard({
               exit={{ opacity: 0 }}
             >
               <Button
-                variant="outline"
+                variant="ghost-primary"
                 size="sm"
                 onClick={() => setIsComposing(true)}
-                className="w-full gap-2 border-dashed border-border bg-transparent text-muted-foreground hover:border-primary/30 hover:text-foreground"
+                className="w-full gap-2"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Create Session Check-In
@@ -308,14 +308,14 @@ export function CheckinCard({
               <div className="flex items-center justify-end gap-2">
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="ghost-secondary"
                   size="sm"
                   onClick={() => {
                     setIsComposing(false)
                     setTitle("")
                     setSessionDate(toLocalDatetime())
                   }}
-                  className="h-7 text-xs text-muted-foreground"
+                  className="h-7 text-xs"
                 >
                   Cancel
                 </Button>
