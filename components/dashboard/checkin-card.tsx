@@ -14,6 +14,16 @@ import {
   Send,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
@@ -57,6 +67,7 @@ export function CheckinCard({
   const [sessionDate, setSessionDate] = useState(toLocalDatetime())
   const [loading, setLoading] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   const handleCreate = async () => {
     setLoading(true)
@@ -121,7 +132,7 @@ export function CheckinCard({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="relative rounded-2xl border border-checkin/20 bg-checkin/5 p-4"
+              className="group/checkin relative rounded-2xl border border-checkin/20 bg-checkin/5 p-4"
             >
               <div className="flex items-start gap-3">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-checkin/10">
@@ -154,7 +165,7 @@ export function CheckinCard({
                   {/* Progress */}
                   <div className="mt-3 flex items-center gap-3">
                     <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-checkin" />
                       {checkin.checkedInCount}/{checkin.totalAthletes} checked in
                     </div>
                     <div className="h-1.5 flex-1 rounded-full bg-secondary">
@@ -189,19 +200,41 @@ export function CheckinCard({
 
                 {/* Coach delete */}
                 {isCoach && (
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(checkin.id)}
-                    disabled={deletingId === checkin.id}
-                    className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                    aria-label="Remove check-in"
+                  <AlertDialog
+                    open={deleteConfirmId === checkin.id}
+                    onOpenChange={(open) => !open && setDeleteConfirmId(null)}
                   >
-                    {deletingId === checkin.id ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-3.5 w-3.5" />
-                    )}
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteConfirmId(checkin.id)}
+                      disabled={deletingId === checkin.id}
+                      className="shrink-0 rounded-lg p-1.5 text-muted-foreground opacity-0 transition-opacity group-hover/checkin:opacity-100 hover:bg-destructive/10 hover:text-destructive"
+                      aria-label="Remove check-in"
+                    >
+                      {deletingId === checkin.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure you want to delete?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This session check-in will be removed.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteConfirmId && handleDelete(deleteConfirmId)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 )}
               </div>
             </motion.div>
@@ -220,10 +253,10 @@ export function CheckinCard({
               exit={{ opacity: 0 }}
             >
               <Button
-                variant="outline"
+                variant="ghost-primary"
                 size="sm"
                 onClick={() => setIsComposing(true)}
-                className="w-full gap-2 border-dashed border-border bg-transparent text-muted-foreground hover:border-checkin/30 hover:text-foreground"
+                className="w-full gap-2"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Create Session Check-In
@@ -238,7 +271,7 @@ export function CheckinCard({
               className="rounded-2xl border border-border bg-card p-4"
             >
               <div className="mb-3 flex items-center gap-2">
-                <ClipboardCheck className="h-3.5 w-3.5 text-checkin" />
+                <ClipboardCheck className="h-3.5 w-3.5 text-primary" />
                 <span className="text-xs font-semibold text-foreground">
                   New Session Check-In
                 </span>
@@ -275,23 +308,24 @@ export function CheckinCard({
               <div className="flex items-center justify-end gap-2">
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="ghost-secondary"
                   size="sm"
                   onClick={() => {
                     setIsComposing(false)
                     setTitle("")
                     setSessionDate(toLocalDatetime())
                   }}
-                  className="h-7 text-xs text-muted-foreground"
+                  className="h-7 text-xs"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="button"
+                  variant="ghost-primary"
                   size="sm"
                   disabled={loading}
                   onClick={handleCreate}
-                  className="h-7 gap-1.5 bg-checkin text-xs text-checkin-foreground hover:bg-checkin/90"
+                  className="h-7 gap-1.5 text-xs"
                 >
                   {loading ? (
                     <Loader2 className="h-3 w-3 animate-spin" />

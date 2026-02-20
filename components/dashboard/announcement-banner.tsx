@@ -3,8 +3,18 @@
 import React from "react"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Megaphone, X, Send, Loader2, Shield, Pencil } from "lucide-react"
+import { Megaphone, Trash2, Send, Loader2, Shield, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
@@ -30,6 +40,7 @@ export function AnnouncementBanner({
   const [isComposing, setIsComposing] = useState(false)
   const [text, setText] = useState("")
   const [loading, setLoading] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
   const handlePost = async () => {
     if (!text.trim()) return
@@ -82,7 +93,7 @@ export function AnnouncementBanner({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="relative rounded-2xl border border-primary/20 bg-primary/5 p-4"
+            className="group/announcement relative rounded-2xl border border-primary/20 bg-primary/5 p-4"
           >
             <div className="flex items-start gap-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -107,7 +118,7 @@ export function AnnouncementBanner({
                 </p>
               </div>
               {isCoach && (
-                <div className="flex shrink-0 items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover/announcement:opacity-100">
                   <button
                     type="button"
                     onClick={() => {
@@ -115,20 +126,39 @@ export function AnnouncementBanner({
                       setIsComposing(true)
                     }}
                     disabled={loading}
-                    className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground"
                     aria-label="Edit announcement"
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleDismiss}
-                    disabled={loading}
-                    className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                    aria-label="Remove announcement"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
+                  <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteConfirmOpen(true)}
+                      disabled={loading}
+                      className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      aria-label="Remove announcement"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure you want to delete?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This announcement will be removed for all group members.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDismiss}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               )}
             </div>
@@ -147,10 +177,10 @@ export function AnnouncementBanner({
               exit={{ opacity: 0 }}
             >
               <Button
-                variant="outline"
+                variant="ghost-primary"
                 size="sm"
                 onClick={() => setIsComposing(true)}
-                className="w-full gap-2 border-dashed border-border bg-transparent text-muted-foreground hover:border-primary/30 hover:text-foreground"
+                className="w-full gap-2"
               >
                 <Megaphone className="h-3.5 w-3.5" />
                 {announcement ? "Update Announcement" : "Post Announcement"}
@@ -188,22 +218,23 @@ export function AnnouncementBanner({
                 <div className="flex gap-2">
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="ghost-secondary"
                     size="sm"
                     onClick={() => {
                       setIsComposing(false)
                       setText("")
                     }}
-                    className="h-7 text-xs text-muted-foreground"
+                    className="h-7 text-xs"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="button"
+                    variant="ghost-primary"
                     size="sm"
                     disabled={loading || !text.trim()}
                     onClick={handlePost}
-                    className="h-7 gap-1.5 bg-primary text-xs text-primary-foreground hover:bg-primary/90"
+                    className="h-7 gap-1.5 text-xs"
                   >
                     {loading ? (
                       <Loader2 className="h-3 w-3 animate-spin" />

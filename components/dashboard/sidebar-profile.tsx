@@ -19,6 +19,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { User } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
@@ -40,9 +50,16 @@ export function SidebarProfile({
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showGroupSwitcher, setShowGroupSwitcher] = useState(false);
+  const [groupSearch, setGroupSearch] = useState("");
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
 
   const userGroups = user.groups ?? [];
   const hasMultipleGroups = userGroups.length > 1;
+  const filteredGroups = groupSearch.trim()
+    ? userGroups.filter((g) =>
+        g.name.toLowerCase().includes(groupSearch.trim().toLowerCase())
+      )
+    : userGroups;
 
   const handleSwitchGroup = async (groupId: string) => {
     setLoading(true);
@@ -59,6 +76,7 @@ export function SidebarProfile({
       }
       toast.success(`Switched to "${data.group.name}"`);
       setShowGroupSwitcher(false);
+      setGroupSearch("");
       onGroupChanged();
     } catch {
       toast.error("Network error");
@@ -207,14 +225,40 @@ export function SidebarProfile({
                 <span className="flex items-center gap-1.5">
                   <ArrowRightLeft className="h-3 w-3" />
                   Switch Group
+                  {userGroups.length > 0 && (
+                    <span className="text-muted-foreground/80">
+                      ({userGroups.length})
+                    </span>
+                  )}
                 </span>
                 <ChevronDown
                   className={`h-3 w-3 transition-transform ${showGroupSwitcher ? "rotate-180" : ""}`}
                 />
               </button>
               {showGroupSwitcher && (
-                <div className="mt-1.5 flex flex-col gap-0.5 rounded-lg border border-border bg-card p-1">
-                  {userGroups.map((g) => (
+                <div className="mt-1.5 flex flex-col gap-1 rounded-lg border border-border bg-card p-1">
+                  {userGroups.length >= 5 && (
+                    <input
+                      type="text"
+                      value={groupSearch}
+                      onChange={(e) => setGroupSearch(e.target.value)}
+                      placeholder="Search groups..."
+                      className="mx-1 mb-0.5 rounded-md border border-border bg-secondary px-2 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                    />
+                  )}
+                  {filteredGroups.length === 0 ? (
+                    <p className="px-2.5 py-2 text-xs text-muted-foreground">
+                      No groups match
+                    </p>
+                  ) : (
+                    <div
+                      className={`flex flex-col gap-1 ${
+                        filteredGroups.length > 5
+                          ? "max-h-36 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                          : ""
+                      }`}
+                    >
+                    {filteredGroups.map((g) => (
                     <button
                       key={g.id}
                       type="button"
@@ -227,12 +271,14 @@ export function SidebarProfile({
                       }`}
                     >
                       <Users className="h-3 w-3" />
-                      <span className="flex-1 text-left">{g.name}</span>
+                      <span className="flex-1 text-left truncate">{g.name}</span>
                       {g.id === user.group?.id && (
-                        <Check className="h-3 w-3 text-primary" />
+                        <Check className="h-3 w-3 shrink-0 text-primary" />
                       )}
                     </button>
                   ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -241,27 +287,46 @@ export function SidebarProfile({
           {/* Actions: Join another group / Leave */}
           <div className="mt-2 flex gap-1.5">
             <Button
-              variant="ghost"
+              variant="ghost-primary"
               size="sm"
               onClick={() => {
                 setShowGroupAction(true);
                 setGroupAction("join");
               }}
               disabled={loading}
-              className="h-7 flex-1 gap-1 text-xs text-muted-foreground hover:text-foreground"
+              className="h-7 flex-1 gap-1 text-xs"
             >
               <Plus className="h-3 w-3" />
               Join Another
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLeaveGroup}
-              disabled={loading}
-              className="h-7 gap-1 text-xs text-muted-foreground hover:text-destructive"
-            >
-              Leave
-            </Button>
+            <AlertDialog open={leaveConfirmOpen} onOpenChange={setLeaveConfirmOpen}>
+              <Button
+                variant="ghost-destructive"
+                size="sm"
+                onClick={() => setLeaveConfirmOpen(true)}
+                disabled={loading}
+                className="h-7 gap-1 text-xs"
+              >
+                Leave
+              </Button>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure you want to leave?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You will lose access to this group and its content.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleLeaveGroup}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Leave
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       ) : null}
@@ -271,10 +336,10 @@ export function SidebarProfile({
         <div>
           {!showGroupAction && !user.group ? (
             <Button
-              variant="outline"
+              variant="ghost-primary"
               size="sm"
               onClick={() => setShowGroupAction(true)}
-              className="w-full gap-2 border-border bg-transparent text-muted-foreground hover:text-foreground"
+              className="w-full gap-2"
             >
               <Users className="h-3.5 w-3.5" />
               {user.role === "coach" ? "Create or Join Group" : "Join a Group"}
@@ -347,13 +412,13 @@ export function SidebarProfile({
                   </Button>
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="ghost-secondary"
                     size="sm"
                     onClick={() => {
                       setShowGroupAction(false);
                       setGroupInput("");
                     }}
-                    className="h-7 text-xs text-muted-foreground"
+                    className="h-7 text-xs"
                   >
                     Cancel
                   </Button>
@@ -365,10 +430,10 @@ export function SidebarProfile({
       )}
 
       <Button
-        variant="ghost"
+        variant="ghost-secondary"
         size="sm"
         onClick={handleLogout}
-        className="w-full gap-2 text-muted-foreground hover:text-foreground"
+        className="w-full gap-2"
       >
         <LogOut className="h-4 w-4" />
         Sign Out

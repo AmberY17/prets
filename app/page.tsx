@@ -90,9 +90,9 @@ export default function LandingPage() {
             <ThemeSwitcher />
             <Link href="/auth">
               <Button
-                variant="ghost"
+                variant="ghost-secondary"
                 size="sm"
-                className="text-muted-foreground hover:text-foreground"
+                className="gap-2"
               >
                 Sign In
               </Button>

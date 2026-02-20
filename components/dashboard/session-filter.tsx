@@ -51,7 +51,13 @@ export function SessionFilter({
           No sessions created yet.
         </p>
       ) : (
-        <div className="flex flex-col gap-2">
+        <div
+          className={`flex flex-col gap-2 ${
+            sessions.length > 5
+              ? "max-h-56 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              : ""
+          }`}
+        >
           {sessions.map((session) => {
             const isActive = activeSessionId === session.id
             const dateObj = new Date(session.sessionDate)

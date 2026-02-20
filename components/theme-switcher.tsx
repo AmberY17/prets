@@ -14,9 +14,9 @@ const colorThemes = [
   {
     id: "green",
     label: "Green + Amber",
-    primary: "hsl(152 60% 38%)",
+    primary: "hsl(152 48% 36%)",
     accent: "hsl(38 92% 50%)",
-    primaryDark: "hsl(152 76% 52%)",
+    primaryDark: "hsl(152 55% 42%)",
     accentDark: "hsl(38 92% 50%)",
   },
   {
@@ -64,9 +64,9 @@ export function ThemeSwitcher() {
   if (!mounted) {
     return (
       <Button
-        variant="ghost"
+        variant="ghost-secondary"
         size="icon"
-        className="h-8 w-8 text-muted-foreground"
+        className="h-8 w-8"
         aria-label="Theme settings"
       >
         <Palette className="h-4 w-4" />
@@ -78,9 +78,9 @@ export function ThemeSwitcher() {
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          variant="ghost"
+          variant="ghost-secondary"
           size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          className="h-8 w-8"
           aria-label="Theme settings"
         >
           <Palette className="h-4 w-4" />
