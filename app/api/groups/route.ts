@@ -3,6 +3,9 @@ import { getSession, createSession } from "@/lib/auth"
 import { getDb } from "@/lib/mongodb"
 import type { Db } from "mongodb"
 import { ObjectId } from "mongodb"
+import {
+  applyGroupTrainingScheduleToUser,
+} from "@/lib/group-training-schedule"
 
 function generateCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -179,6 +182,16 @@ export async function POST(req: Request) {
           $addToSet: { groupIds: groupId },
         }
       )
+
+      // If the group has a training schedule template, apply it to this new member
+      if (Array.isArray(group.trainingScheduleTemplate) && group.trainingScheduleTemplate.length > 0) {
+        await applyGroupTrainingScheduleToUser(
+          db,
+          session.userId,
+          groupId,
+          group.trainingScheduleTemplate as { dayOfWeek: number; time: string }[]
+        )
+      }
 
       // Create group membership for role tracking
       await db.collection("groupMemberships").updateOne(
@@ -395,6 +408,7 @@ export async function GET(req: Request) {
           name: g.name,
           code: g.code,
           coachId: g.coachId,
+          trainingScheduleUpdatedAt: g.trainingScheduleUpdatedAt ?? null,
         })),
       })
     }

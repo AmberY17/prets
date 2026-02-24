@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -174,10 +175,21 @@ export default function AttendancePage() {
               <span className="text-sm">Back</span>
             </Link>
             <div className="h-4 w-px bg-border" />
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-              <span className="text-xs font-bold text-primary-foreground">
-                TL
-              </span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+              <Image
+                src="/logo.png"
+                alt="Pretvia"
+                width={20}
+                height={20}
+                className="h-5 w-5 object-contain dark:hidden"
+              />
+              <Image
+                src="/logo_dark_white.png"
+                alt="Pretvia"
+                width={20}
+                height={20}
+                className="hidden h-5 w-5 object-contain dark:block"
+              />
             </div>
             <span className="text-sm font-semibold text-foreground">
               Attendance

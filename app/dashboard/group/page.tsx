@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -16,6 +17,8 @@ import {
   UserMinus,
   Check,
   ChevronDown,
+  Calendar,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -61,6 +64,10 @@ export default function GroupManagementPage() {
     null,
   );
   const [deleteRoleConfirmOpen, setDeleteRoleConfirmOpen] = useState(false);
+  const [trainingSchedule, setTrainingSchedule] = useState<
+    { dayOfWeek: number; time: string }[]
+  >([]);
+  const [savingTrainingSchedule, setSavingTrainingSchedule] = useState(false);
   const transferDropdownRef = useRef<HTMLDivElement>(null);
   const roleDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -124,6 +131,85 @@ export default function GroupManagementPage() {
   const roles = membersData?.roles ?? [];
   const coachGroups = coachGroupsData?.groups ?? [];
   const transferableGroups = coachGroups.filter((g) => g.id !== user?.groupId);
+  const DAYS = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
+  useEffect(() => {
+    if (!user?.groupId) return;
+    let cancelled = false;
+    const loadTrainingSchedule = async () => {
+      try {
+        const res = await fetch(`/api/groups/${user.groupId}/training-schedule`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        const slots = Array.isArray(data.trainingScheduleTemplate)
+          ? data.trainingScheduleTemplate
+          : [];
+        setTrainingSchedule(
+          slots.map((s: { dayOfWeek: number; time: string }) => ({
+            dayOfWeek: s.dayOfWeek,
+            time: s.time || "09:00",
+          })),
+        );
+      } catch {
+        // ignore for now
+      }
+    };
+    loadTrainingSchedule();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.groupId]);
+
+  const addTrainingSlot = () => {
+    setTrainingSchedule((prev) => [...prev, { dayOfWeek: 1, time: "09:00" }]);
+  };
+
+  const removeTrainingSlot = (index: number) => {
+    setTrainingSchedule((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateTrainingSlot = (
+    index: number,
+    field: "dayOfWeek" | "time",
+    value: number | string,
+  ) => {
+    setTrainingSchedule((prev) =>
+      prev.map((s, i) =>
+        i === index ? { ...s, [field]: value } : s,
+      ),
+    );
+  };
+
+  const handleSaveTrainingSchedule = async () => {
+    if (!user?.groupId) return;
+    setSavingTrainingSchedule(true);
+    try {
+      const res = await fetch(`/api/groups/${user.groupId}/training-schedule`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trainingSchedule }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Failed to update training schedule");
+        return;
+      }
+      toast.success("Training schedule updated and applied to all athletes in this group.");
+    } catch {
+      toast.error("Network error");
+    } finally {
+      setSavingTrainingSchedule(false);
+    }
+  };
   const filteredTransferGroups = transferSearch.trim()
     ? transferableGroups.filter((g) =>
         g.name.toLowerCase().includes(transferSearch.trim().toLowerCase()),
@@ -314,10 +400,21 @@ export default function GroupManagementPage() {
               <span className="text-sm">Back</span>
             </Link>
             <div className="h-4 w-px bg-border" />
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-              <span className="text-xs font-bold text-primary-foreground">
-                TL
-              </span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+              <Image
+                src="/logo.png"
+                alt="Pretvia"
+                width={20}
+                height={20}
+                className="h-5 w-5 object-contain dark:hidden"
+              />
+              <Image
+                src="/logo_dark_white.png"
+                alt="Pretvia"
+                width={20}
+                height={20}
+                className="hidden h-5 w-5 object-contain dark:block"
+              />
             </div>
             <span className="text-sm font-semibold text-foreground">
               Manage Group
@@ -453,6 +550,82 @@ export default function GroupManagementPage() {
                       {r.name}
                     </button>
                   ))}
+                </div>
+              </section>
+
+              {/* Training schedule section (coach, current group only) */}
+              <section className="rounded-2xl border border-border bg-card p-6">
+                <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground">
+                  <Calendar className="h-4 w-4" />
+                  Training schedule
+                </h2>
+                <p className="mb-4 text-xs text-muted-foreground">
+                  Set a default training schedule for this group. Athletes in this group
+                  will have these slots applied to their account, and they can still add
+                  their own custom training schedule entries.
+                </p>
+                <div className="flex flex-col gap-3">
+                  {trainingSchedule.map((slot, index) => (
+                    <div
+                      key={index}
+                      className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary/50 p-3"
+                    >
+                      <select
+                        value={slot.dayOfWeek}
+                        onChange={(e) =>
+                          updateTrainingSlot(index, "dayOfWeek", Number(e.target.value))
+                        }
+                        className="h-9 flex-1 min-w-[120px] rounded-md border border-border bg-background px-3 text-sm text-foreground"
+                      >
+                        {DAYS.map((name, i) => (
+                          <option key={i} value={i}>
+                            {name}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="time"
+                        value={slot.time}
+                        onChange={(e) =>
+                          updateTrainingSlot(index, "time", e.target.value)
+                        }
+                        className="h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground"
+                      />
+                      <Button
+                        variant="ghost-secondary"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => removeTrainingSlot(index)}
+                        aria-label="Remove slot"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="ghost-secondary"
+                    size="sm"
+                    className="w-fit"
+                    onClick={addTrainingSlot}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add schedule slot
+                  </Button>
+                  {trainingSchedule.length > 0 && (
+                    <Button
+                      variant="ghost-primary"
+                      size="sm"
+                      className="w-fit"
+                      onClick={handleSaveTrainingSchedule}
+                      disabled={savingTrainingSchedule}
+                    >
+                      {savingTrainingSchedule ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Save"
+                      )}
+                    </Button>
+                  )}
                 </div>
               </section>
 
