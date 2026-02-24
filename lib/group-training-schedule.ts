@@ -42,7 +42,6 @@ export async function applyGroupTrainingScheduleToAllMembers(
 
   // eslint-disable-next-line no-await-in-loop
   for await (const user of cursor) {
-    const userId = user._id as typeof ObjectId
     const currentSlots = Array.isArray(user.trainingSlots)
       ? (user.trainingSlots as { dayOfWeek: number; time: string; sourceGroupId?: string }[])
       : []
@@ -72,7 +71,7 @@ export async function applyGroupTrainingScheduleToAllMembers(
     }
 
     await db.collection("users").updateOne(
-      { _id: new ObjectId(String(userId)) },
+      { _id: user._id },
       { $set: { trainingSlots: updatedSlots } }
     )
   }

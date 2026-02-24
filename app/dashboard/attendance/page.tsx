@@ -320,7 +320,7 @@ export default function AttendancePage() {
                         No athletes in this group yet.
                       </div>
                     ) : (
-                      athletes.map((athlete) => (
+                      athletes.map((athlete: { id: string; displayName?: string; email?: string; status?: string | null }) => (
                         <div
                           key={athlete.id}
                           className="flex items-center justify-between px-4 py-3"

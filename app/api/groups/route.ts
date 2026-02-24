@@ -301,7 +301,8 @@ export async function POST(req: Request) {
       if (user.role === "coach") {
         await db.collection("groups").updateOne(
           { _id: new ObjectId(currentGroupId) },
-          { $pull: { coachIds: session.userId } }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          { $pull: { coachIds: session.userId } } as any
         )
       }
 
@@ -439,7 +440,7 @@ export async function GET(req: Request) {
       .find({ groupId, userId: { $in: members.map((m) => m._id.toString()) } })
       .toArray()
     const roleIdsByUser = new Map(
-      membershipDocs.map((m: { userId: string; roleIds: string[] }) => [
+      (membershipDocs as unknown as { userId: string; roleIds?: string[] }[]).map((m) => [
         m.userId,
         m.roleIds ?? [],
       ])

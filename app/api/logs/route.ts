@@ -53,7 +53,7 @@ export async function GET(req: Request) {
           .find({ groupId: userGroupId, roleIds: filterRoleId })
           .project({ userId: 1 })
           .toArray()
-        const roleMemberIds = withRole.map((m: { userId: string }) => m.userId)
+        const roleMemberIds = (withRole as { userId: string }[]).map((m) => m.userId)
         memberIds = memberIds.filter((id) => roleMemberIds.includes(id))
       }
 

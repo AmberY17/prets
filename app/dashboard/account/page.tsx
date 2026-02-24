@@ -516,7 +516,7 @@ export default function AccountPage() {
                             Number(e.target.value)
                           )
                         }
-                        disabled={isGroup}
+                        disabled={!!isGroup}
                         className="h-9 flex-1 min-w-[120px] rounded-md border border-border bg-background px-3 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-70"
                       >
                         {DAYS.map((name, i) => (
@@ -531,7 +531,7 @@ export default function AccountPage() {
                         onChange={(e) =>
                           updateTrainingSlot(index, "time", e.target.value)
                         }
-                        disabled={isGroup}
+                        disabled={!!isGroup}
                         className="h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-70"
                       />
                       <Button
