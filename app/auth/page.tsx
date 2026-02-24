@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { mutate } from "swr";
+import { useAuth } from "@/hooks/use-auth";
 import { ArrowLeft, Loader2, Users, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,8 +38,23 @@ const ERROR_MESSAGES: Record<string, string> = {
 function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, isLoading: authLoading, mutate: mutateAuth } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  // Redirect logged-in users (e.g. after verifying in another tab)
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace("/dashboard");
+    }
+  }, [user, authLoading, router]);
+
+  // Revalidate session when tab gains focus so we pick up verification from another tab
+  useEffect(() => {
+    const onFocus = () => mutateAuth();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [mutateAuth]);
 
   useEffect(() => {
     const error = searchParams.get("error");
@@ -124,6 +140,18 @@ function AuthForm() {
     },
     [email, password, isLogin, displayName, role, router],
   );
+
+  if (authLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </main>
+    );
+  }
+
+  if (user) {
+    return null; // Redirecting to dashboard
+  }
 
   return (
     <main className="relative flex min-h-screen items-center justify-center px-6 py-12">
