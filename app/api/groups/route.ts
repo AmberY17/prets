@@ -3,6 +3,7 @@ import { getSession, createSession } from "@/lib/auth"
 import { getDb } from "@/lib/mongodb"
 import type { Db } from "mongodb"
 import { ObjectId } from "mongodb"
+import { safeObjectId } from "@/lib/objectid"
 import {
   applyGroupTrainingScheduleToUser,
 } from "@/lib/group-training-schedule"
@@ -417,9 +418,13 @@ export async function GET(req: Request) {
     if (!groupId) {
       return NextResponse.json({ members: [], roles: [] })
     }
+    const groupOid = safeObjectId(groupId)
+    if (!groupOid) {
+      return NextResponse.json({ error: "Invalid group ID" }, { status: 400 })
+    }
 
     const group = await db.collection("groups").findOne({
-      _id: new ObjectId(groupId),
+      _id: groupOid,
     })
     const roles = group?.roles ?? []
 
