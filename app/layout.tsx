@@ -2,6 +2,8 @@ import React from "react";
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Kumar_One_Outline } from "next/font/google";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import "./globals.css";
@@ -70,6 +72,8 @@ export default function RootLayout({
               },
             }}
           />
+          <Analytics />
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>
