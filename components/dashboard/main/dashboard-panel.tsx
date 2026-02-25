@@ -1,11 +1,11 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { LogForm } from "@/components/dashboard/log-form";
-import { LogDetail } from "@/components/dashboard/log-detail";
-import { ConfettiCelebration } from "@/components/dashboard/confetti-celebration";
+import { LogForm } from "@/components/dashboard/logs/log-form";
+import { LogDetail } from "@/components/dashboard/logs/log-detail";
+import { ConfettiCelebration } from "@/components/dashboard/shared/confetti-celebration";
 import type { User } from "@/hooks/use-auth";
-import type { LogEntry } from "@/components/dashboard/log-card";
+import type { LogEntry } from "@/components/dashboard/logs/log-card";
 
 export interface PanelState {
   panelMode: "new" | "view" | "edit" | null;

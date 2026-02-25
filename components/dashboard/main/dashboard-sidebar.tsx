@@ -2,16 +2,16 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { RotateCcw } from "lucide-react";
-import { SidebarProfile } from "@/components/dashboard/sidebar-profile";
-import { CollapsibleFilterSection } from "@/components/dashboard/collapsible-filter-section";
-import { TagFilter } from "@/components/dashboard/tag-filter";
-import { SessionFilter } from "@/components/dashboard/session-filter";
-import { DateFilter } from "@/components/dashboard/date-filter";
-import { AthleteFilter } from "@/components/dashboard/athlete-filter";
-import { RoleFilter } from "@/components/dashboard/role-filter";
-import { ReviewStatusFilter } from "@/components/dashboard/review-status-filter";
-import { SidebarFilterSkeleton } from "@/components/dashboard/dashboard-skeletons";
-import { SidebarStatsCard } from "@/components/dashboard/sidebar-stats-card";
+import { SidebarProfile } from "@/components/dashboard/sidebar/sidebar-profile";
+import { CollapsibleFilterSection } from "@/components/dashboard/filters/collapsible-filter-section";
+import { TagFilter } from "@/components/dashboard/filters/tag-filter";
+import { SessionFilter } from "@/components/dashboard/filters/session-filter";
+import { DateFilter } from "@/components/dashboard/filters/date-filter";
+import { AthleteFilter } from "@/components/dashboard/filters/athlete-filter";
+import { RoleFilter } from "@/components/dashboard/filters/role-filter";
+import { ReviewStatusFilter } from "@/components/dashboard/filters/review-status-filter";
+import { SidebarFilterSkeleton } from "@/components/dashboard/main/dashboard-skeletons";
+import { SidebarStatsCard } from "@/components/dashboard/sidebar/sidebar-stats-card";
 import type { User } from "@/hooks/use-auth";
 import type {
   DashboardFiltersState,

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import type { LogEntry } from "@/components/dashboard/log-card";
+import type { LogEntry } from "@/components/dashboard/logs/log-card";
 
 export type PanelMode = "new" | "view" | "edit" | null;
 

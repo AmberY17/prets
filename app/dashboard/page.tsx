@@ -9,13 +9,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { urlFetcher, logsInfiniteFetcher } from "@/lib/swr-utils";
 import { useDashboardFilters } from "@/hooks/use-dashboard-filters";
 import { useDashboardPanel } from "@/hooks/use-dashboard-panel";
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
-import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
-import { DashboardFeed } from "@/components/dashboard/dashboard-feed";
-import { DashboardPanel } from "@/components/dashboard/dashboard-panel";
+import { DashboardHeader } from "@/components/dashboard/main/dashboard-header";
+import { DashboardSidebar } from "@/components/dashboard/main/dashboard-sidebar";
+import { DashboardFeed } from "@/components/dashboard/main/dashboard-feed";
+import { DashboardPanel } from "@/components/dashboard/main/dashboard-panel";
 import { LoadingScreen } from "@/components/ui/loading-screen";
-import { LogCard, type LogEntry } from "@/components/dashboard/log-card";
-import { CheckinCard, type CheckinItem } from "@/components/dashboard/checkin-card";
+import type { LogEntry } from "@/types/dashboard";
+import type { CheckinItem } from "@/components/dashboard/shared/checkin-card";
 
 export default function DashboardPage() {
   const router = useRouter();

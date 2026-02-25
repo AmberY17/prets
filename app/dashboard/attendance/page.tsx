@@ -7,7 +7,7 @@ import { urlFetcher } from "@/lib/swr-utils";
 import { ClipboardCheck } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { EmptyStateCard } from "@/components/ui/empty-state-card";
-import { PageHeader } from "@/components/dashboard/page-header";
+import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import {
   AttendanceSessionDropdown,

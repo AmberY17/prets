@@ -2,7 +2,7 @@
 
 import { User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { EmojiPicker } from "@/components/dashboard/emoji-picker";
+import { EmojiPicker } from "@/components/dashboard/shared/emoji-picker";
 
 interface AccountProfileEmojiSectionProps {
   profileEmoji: string;

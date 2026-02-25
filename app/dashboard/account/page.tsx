@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { PageHeader } from "@/components/dashboard/page-header";
+import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { AccountProfileEmojiSection } from "@/components/dashboard/account/account-profile-emoji-section";
 import { AccountTrainingSlotsSection } from "@/components/dashboard/account/account-training-slots-section";

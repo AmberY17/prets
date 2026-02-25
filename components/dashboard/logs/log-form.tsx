@@ -7,8 +7,8 @@ import { Loader2, Eye, Lock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { EmojiPicker } from "./emoji-picker";
-import { TagInput } from "./tag-input";
+import { EmojiPicker } from "@/components/dashboard/shared/emoji-picker";
+import { TagInput } from "@/components/dashboard/shared/tag-input";
 import { toast } from "sonner";
 import type { LogEntry } from "./log-card";
 
