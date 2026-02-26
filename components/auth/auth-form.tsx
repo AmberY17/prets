@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
@@ -31,6 +31,16 @@ export function AuthForm() {
   const [showForgot, setShowForgot] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSent, setForgotSent] = useState(false);
+
+  // Track whether the user already had a session when /auth was first loaded.
+  // null = not yet determined, true = was logged in on arrival, false = was not.
+  // The "You're signed in" modal should only show when this is true.
+  const sessionOnMountRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (sessionOnMountRef.current === null && !authLoading) {
+      sessionOnMountRef.current = !!user;
+    }
+  }, [authLoading, user]);
 
   // Force fresh session on mount (avoid stale cache from previous visit)
   useEffect(() => {
@@ -171,11 +181,14 @@ export function AuthForm() {
     }
   }, [mutateAuth]);
 
-  if (authLoading) {
+  // Still resolving the initial session, or user just logged in via the form
+  // and router.push("/dashboard") is in flight — keep showing the loading screen.
+  if (authLoading || sessionOnMountRef.current === null || (user && !sessionOnMountRef.current)) {
     return <LoadingScreen />;
   }
 
-  if (user) {
+  // User arrived at /auth while already logged in → show the choice screen.
+  if (user && sessionOnMountRef.current) {
     return (
       <main className="relative flex min-h-screen items-center justify-center px-6 py-12">
         <div
