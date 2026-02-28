@@ -57,7 +57,9 @@ export default function GroupManagementPage() {
   );
 
   useEffect(() => {
-    if (!authLoading && (!user || user.role !== "coach")) {
+    if (!authLoading && !user) {
+      router.push("/auth");
+    } else if (!authLoading && user?.role !== "coach") {
       router.push("/dashboard");
     }
   }, [authLoading, user, router]);

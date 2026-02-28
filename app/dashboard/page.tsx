@@ -104,7 +104,12 @@ export default function DashboardPage() {
     urlFetcher,
   );
 
+  // Prevents the "!user → /auth" redirect from firing when the user
+  // deliberately logs out (the sidebar-profile then navigates to "/").
+  const loggingOutRef = useRef(false);
+
   const handleLogout = useCallback(() => {
+    loggingOutRef.current = true;
     globalMutate(() => true, undefined, { revalidate: false });
     mutateAuth();
   }, [mutateAuth]);
@@ -143,7 +148,7 @@ export default function DashboardPage() {
   ]);
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!authLoading && !user && !loggingOutRef.current) {
       router.push("/auth");
     }
   }, [authLoading, user, router]);
@@ -167,7 +172,7 @@ export default function DashboardPage() {
     if (typeof window === "undefined") return;
 
     try {
-      const key = "prets-group-schedule-seen";
+      const key = "pretvia-group-schedule-seen";
       const stored = window.localStorage.getItem(key);
       const seen: Record<string, string> = stored ? JSON.parse(stored) : {};
       const updatedSeen: Record<string, string> = { ...seen };

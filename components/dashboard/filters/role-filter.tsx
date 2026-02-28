@@ -19,8 +19,6 @@ export function RoleFilter({
   variant = "sidebar",
   hideHeader = false,
 }: RoleFilterProps) {
-  if (roles.length === 0) return null;
-
   const isSidebar = variant === "sidebar";
 
   const buttonBase =

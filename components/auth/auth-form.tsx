@@ -35,12 +35,14 @@ export function AuthForm() {
   // Track whether the user already had a session when /auth was first loaded.
   // null = not yet determined, true = was logged in on arrival, false = was not.
   // The "You're signed in" modal should only show when this is true.
-  const sessionOnMountRef = useRef<boolean | null>(null);
+  // Must be useState (not useRef) so that setting it triggers a re-render
+  // and the component exits the LoadingScreen gate.
+  const [sessionOnMount, setSessionOnMount] = useState<boolean | null>(null);
   useEffect(() => {
-    if (sessionOnMountRef.current === null && !authLoading) {
-      sessionOnMountRef.current = !!user;
+    if (sessionOnMount === null && !authLoading) {
+      setSessionOnMount(!!user);
     }
-  }, [authLoading, user]);
+  }, [authLoading, user, sessionOnMount]);
 
   // Force fresh session on mount (avoid stale cache from previous visit)
   useEffect(() => {
@@ -67,6 +69,20 @@ export function AuthForm() {
   // Auth fields
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+
+  // Chrome does not enforce minLength constraint validation on password inputs,
+  // so we use setCustomValidity to make validity.valid correctly reflect
+  // the 6-character minimum during sign-up.
+  useEffect(() => {
+    const input = passwordInputRef.current;
+    if (!input) return;
+    if (!isLogin && password.length > 0 && password.length < 6) {
+      input.setCustomValidity("Password must be at least 6 characters");
+    } else {
+      input.setCustomValidity("");
+    }
+  }, [password, isLogin]);
 
   // Signup-only fields
   const [displayName, setDisplayName] = useState("");
@@ -183,12 +199,16 @@ export function AuthForm() {
 
   // Still resolving the initial session, or user just logged in via the form
   // and router.push("/dashboard") is in flight — keep showing the loading screen.
-  if (authLoading || sessionOnMountRef.current === null || (user && !sessionOnMountRef.current)) {
+  if (
+    authLoading ||
+    sessionOnMount === null ||
+    (user && !sessionOnMount)
+  ) {
     return <LoadingScreen />;
   }
 
   // User arrived at /auth while already logged in → show the choice screen.
-  if (user && sessionOnMountRef.current) {
+  if (user && sessionOnMount) {
     return (
       <main className="relative flex min-h-screen items-center justify-center px-6 py-12">
         <div
@@ -261,7 +281,10 @@ export function AuthForm() {
         <div className="relative z-10 w-full max-w-md">
           <button
             type="button"
-            onClick={() => { setShowForgot(false); setForgotSent(false); }}
+            onClick={() => {
+              setShowForgot(false);
+              setForgotSent(false);
+            }}
             className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -269,9 +292,23 @@ export function AuthForm() {
           </button>
           <Card className="border-border bg-card">
             <CardHeader className="pb-4">
-              <Image src="/logo.png" alt="Pretvia" width={44} height={44} className="mb-2 h-11 w-11 object-contain dark:hidden" />
-              <Image src="/logo_dark_white.png" alt="Pretvia" width={44} height={44} className="mb-2 hidden h-11 w-11 object-contain dark:block" />
-              <CardTitle className="text-2xl text-foreground">Reset password</CardTitle>
+              <Image
+                src="/logo.png"
+                alt="Pretvia"
+                width={44}
+                height={44}
+                className="mb-2 h-11 w-11 object-contain dark:hidden"
+              />
+              <Image
+                src="/logo_dark_white.png"
+                alt="Pretvia"
+                width={44}
+                height={44}
+                className="mb-2 hidden h-11 w-11 object-contain dark:block"
+              />
+              <CardTitle className="text-2xl text-foreground">
+                Reset password
+              </CardTitle>
               <CardDescription className="text-muted-foreground">
                 {forgotSent
                   ? "Check your email for a reset link."
@@ -280,9 +317,14 @@ export function AuthForm() {
             </CardHeader>
             {!forgotSent && (
               <CardContent>
-                <form onSubmit={handleForgotPassword} className="flex flex-col gap-4">
+                <form
+                  onSubmit={handleForgotPassword}
+                  className="flex flex-col gap-4"
+                >
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="forgot-email" className="text-foreground">Email</Label>
+                    <Label htmlFor="forgot-email" className="text-foreground">
+                      Email
+                    </Label>
                     <Input
                       id="forgot-email"
                       type="email"
@@ -299,7 +341,11 @@ export function AuthForm() {
                     disabled={loading}
                     className="mt-2 w-full bg-primary text-primary-foreground hover:bg-primary/90"
                   >
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send reset link"}
+                    {loading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Send reset link"
+                    )}
                   </Button>
                 </form>
               </CardContent>
@@ -433,6 +479,7 @@ export function AuthForm() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={6}
+                      ref={passwordInputRef}
                       className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
                     />
                   </div>

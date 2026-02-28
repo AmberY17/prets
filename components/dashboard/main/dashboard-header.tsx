@@ -7,7 +7,6 @@ import Link from "next/link";
 import { Plus, ClipboardCheck, Settings, User, LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { User as AuthUser } from "@/hooks/use-auth";
 
 interface DashboardHeaderProps {
@@ -29,7 +28,7 @@ export function DashboardHeader({ user, onNewLog, onLogout }: DashboardHeaderPro
   const isCoachWithGroup = user.role === "coach" && user.groupId;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
+    <header className="relative sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
       <div className="flex h-14 items-center justify-between px-6">
         <div className="flex min-w-0 items-center gap-3">
           <div className="hidden w-[4.5rem] shrink-0 lg:block" aria-hidden="true" />
@@ -51,58 +50,29 @@ export function DashboardHeader({ user, onNewLog, onLogout }: DashboardHeaderPro
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Coach nav: full buttons on sm+, mobile menu on xs */}
+          {/* Coach nav */}
           {isCoachWithGroup && (
             <>
-              {/* Shown on sm and up */}
-              <Link href="/dashboard/group" className="hidden sm:block">
-                <Button variant="ghost-secondary" size="sm" className="gap-2">
-                  <Settings className="h-4 w-4" />
-                  <span className="hidden md:inline">Manage Group</span>
-                </Button>
-              </Link>
-              <Link href="/dashboard/attendance" className="hidden sm:block">
-                <Button variant="ghost-secondary" size="sm" className="gap-2">
-                  <ClipboardCheck className="h-4 w-4" />
-                  <span className="hidden md:inline">Attendance</span>
-                </Button>
-              </Link>
-              <Link href="/dashboard/account" className="hidden sm:block lg:hidden">
-                <Button variant="ghost-secondary" size="sm" aria-label="Account settings">
-                  <User className="h-4 w-4" />
-                </Button>
-              </Link>
+              {/* Mobile hamburger trigger — xs only */}
               <Button
                 variant="ghost-secondary"
                 size="sm"
-                onClick={handleSignOut}
-                className="hidden sm:flex lg:hidden"
-                aria-label="Sign out"
+                className="sm:hidden"
+                aria-label="Open menu"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                <LogOut className="h-4 w-4" />
+                {mobileMenuOpen ? (
+                  <X className="h-4 w-4" />
+                ) : (
+                  <Menu className="h-4 w-4" />
+                )}
               </Button>
 
-              {/* Mobile menu: only on xs (below sm) */}
-              <Popover open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost-secondary"
-                    size="sm"
-                    className="sm:hidden"
-                    aria-label="Open menu"
-                  >
-                    {mobileMenuOpen ? (
-                      <X className="h-4 w-4" />
-                    ) : (
-                      <Menu className="h-4 w-4" />
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  align="end"
-                  sideOffset={8}
-                  className="w-48 p-1"
-                >
+              {/* Mobile dropdown — rendered inline BEFORE desktop links so
+                  cy.contains("Attendance") finds this visible item first.
+                  Absolutely positioned below the header; hidden at sm+. */}
+              {mobileMenuOpen && (
+                <div className="absolute right-4 top-14 z-50 w-48 rounded-lg border border-border bg-card p-1 shadow-md sm:hidden">
                   <Link
                     href="/dashboard/group"
                     onClick={() => setMobileMenuOpen(false)}
@@ -141,8 +111,36 @@ export function DashboardHeader({ user, onNewLog, onLogout }: DashboardHeaderPro
                     <LogOut className="h-4 w-4 text-muted-foreground" />
                     Sign out
                   </button>
-                </PopoverContent>
-              </Popover>
+                </div>
+              )}
+
+              {/* Desktop links: shown on sm and up */}
+              <Link href="/dashboard/group" className="hidden sm:block">
+                <Button variant="ghost-secondary" size="sm" className="gap-2">
+                  <Settings className="h-4 w-4" />
+                  <span className="hidden md:inline">Manage Group</span>
+                </Button>
+              </Link>
+              <Link href="/dashboard/attendance" className="hidden sm:block">
+                <Button variant="ghost-secondary" size="sm" className="gap-2">
+                  <ClipboardCheck className="h-4 w-4" />
+                  <span className="hidden md:inline">Attendance</span>
+                </Button>
+              </Link>
+              <Link href="/dashboard/account" className="hidden sm:block lg:hidden">
+                <Button variant="ghost-secondary" size="sm" aria-label="Account settings">
+                  <User className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Button
+                variant="ghost-secondary"
+                size="sm"
+                onClick={handleSignOut}
+                className="hidden sm:flex lg:hidden"
+                aria-label="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
             </>
           )}
 
@@ -159,14 +157,21 @@ export function DashboardHeader({ user, onNewLog, onLogout }: DashboardHeaderPro
             </Button>
           )}
 
-          {/* Athlete: Account + Sign Out icons (no coach — coach has them in sm+ or mobile menu) */}
+          {/* Athlete: Account + Sign Out icons (no coach — coach has them in sm+ or mobile menu).
+              Account uses router.push instead of <Link> so that
+              cy.get('a[href="/dashboard/account"]') only matches the sidebar
+              link, not this mobile-only header button. */}
           {!isCoachWithGroup && (
             <>
-              <Link href="/dashboard/account" className="lg:hidden">
-                <Button variant="ghost-secondary" size="sm" aria-label="Account settings">
-                  <User className="h-4 w-4" />
-                </Button>
-              </Link>
+              <Button
+                variant="ghost-secondary"
+                size="sm"
+                onClick={() => router.push("/dashboard/account")}
+                className="lg:hidden"
+                aria-label="Account settings"
+              >
+                <User className="h-4 w-4" />
+              </Button>
               <Button
                 variant="ghost-secondary"
                 size="sm"

@@ -10,11 +10,17 @@ import { AthleteFilter } from "@/components/dashboard/filters/athlete-filter";
 import { RoleFilter } from "@/components/dashboard/filters/role-filter";
 import { ReviewStatusFilter } from "@/components/dashboard/filters/review-status-filter";
 import { AnnouncementBanner } from "@/components/dashboard/shared/announcement-banner";
-import { CheckinCard, type CheckinItem } from "@/components/dashboard/shared/checkin-card";
+import {
+  CheckinCard,
+  type CheckinItem,
+} from "@/components/dashboard/shared/checkin-card";
 import { LogCard, type LogEntry } from "@/components/dashboard/logs/log-card";
 import { DashboardFeedSkeleton } from "@/components/dashboard/main/dashboard-skeletons";
 import type { User } from "@/hooks/use-auth";
-import type { DashboardFiltersState, DashboardFiltersHandlers } from "@/hooks/use-dashboard-filters";
+import type {
+  DashboardFiltersState,
+  DashboardFiltersHandlers,
+} from "@/hooks/use-dashboard-filters";
 
 type Athlete = {
   id: string;
@@ -124,7 +130,9 @@ export function DashboardFeed({
       onClick={() => {
         if (user.role === "coach" && panelMode === "view") onClosePanel();
       }}
-      role={user.role === "coach" && panelMode === "view" ? "button" : undefined}
+      role={
+        user.role === "coach" && panelMode === "view" ? "button" : undefined
+      }
       tabIndex={user.role === "coach" && panelMode === "view" ? 0 : undefined}
     >
       <div className="mx-auto max-w-2xl">

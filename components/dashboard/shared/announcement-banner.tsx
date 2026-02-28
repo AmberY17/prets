@@ -87,9 +87,9 @@ export function AnnouncementBanner({
       <AnimatePresence>
         {announcement && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="rounded-2xl border border-primary/20 bg-primary/5 p-4"
           >
             <div className="flex items-start gap-3">

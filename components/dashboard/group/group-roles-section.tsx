@@ -134,7 +134,7 @@ export function GroupRolesSection({
             ) : (
               <Plus className="h-4 w-4" />
             )}
-            Add
+            Add Role
           </Button>
         )}
       </div>

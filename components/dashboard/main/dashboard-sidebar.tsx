@@ -18,7 +18,7 @@ import type {
   DashboardFiltersHandlers,
 } from "@/hooks/use-dashboard-filters";
 
-const COACH_FILTER_ORDER_KEY = "prets-coach-filter-order";
+const COACH_FILTER_ORDER_KEY = "pretvia-coach-filter-order";
 const DEFAULT_COACH_ORDER = [
   "sessions",
   "role",
@@ -61,7 +61,11 @@ interface DashboardSidebarProps {
     streak: number;
     hasTrainingSlots: boolean;
     canSkipToday: boolean;
-    skipDisabledReason: "no_training" | "already_skipped" | "already_logged" | null;
+    skipDisabledReason:
+      | "no_training"
+      | "already_skipped"
+      | "already_logged"
+      | null;
   };
   onMutateStats?: () => void;
 }
@@ -83,17 +87,23 @@ export function DashboardSidebar({
   const [coachFilterOrder, setCoachFilterOrder] = useState<CoachFilterId[]>(
     () => [...DEFAULT_COACH_ORDER],
   );
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(
+    () =>
+      user.role === "coach"
+        ? Object.fromEntries(DEFAULT_COACH_ORDER.map((id) => [id, true]))
+        : { tags: true, date: true },
+  );
 
   const handleResetAll = () => {
     handlers.clearAllFilters();
-    setOpenSections({});
   };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const stored = localStorage.getItem(`${COACH_FILTER_ORDER_KEY}-${user.id}`);
+      const stored = localStorage.getItem(
+        `${COACH_FILTER_ORDER_KEY}-${user.id}`,
+      );
       if (stored) {
         const parsed = JSON.parse(stored) as string[];
         const valid = DEFAULT_COACH_ORDER.filter((id) => parsed.includes(id));
@@ -190,14 +200,7 @@ export function DashboardSidebar({
     }
 
     return sections;
-  }, [
-    coachFilterOrder,
-    sessions,
-    filters,
-    handlers,
-    groupRoles,
-    athletes,
-  ]);
+  }, [coachFilterOrder, sessions, filters, handlers, groupRoles, athletes]);
 
   return (
     <aside className="hidden w-72 shrink-0 flex-col gap-4 overflow-y-auto scrollbar-hidden border-r border-border p-4 lg:flex">
@@ -221,75 +224,74 @@ export function DashboardSidebar({
       {isLoading ? (
         <SidebarFilterSkeleton />
       ) : (
-      <div className="rounded-2xl border border-border bg-card p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            FILTER BY
-          </h3>
-          {hasAnyFilter && (
-            <button
-              type="button"
-              onClick={handleResetAll}
-              className="rounded-md p-0.5 text-muted-foreground transition-colors hover:text-foreground"
-              aria-label="Reset all filters"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-            </button>
-          )}
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              FILTER BY
+            </h3>
+            {hasAnyFilter && (
+              <button
+                type="button"
+                onClick={handleResetAll}
+                className="rounded-md p-0.5 text-muted-foreground transition-colors hover:text-foreground"
+                aria-label="Reset all filters"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+          <div className="flex flex-col gap-3">
+            {user.role === "coach" ? (
+              coachSections.map((s) => (
+                <CollapsibleFilterSection
+                  key={s.id}
+                  title={s.title}
+                  open={openSections[s.id] ?? false}
+                  onOpenChange={(open) =>
+                    setOpenSections((prev) => ({ ...prev, [s.id]: open }))
+                  }
+                >
+                  {s.node}
+                </CollapsibleFilterSection>
+              ))
+            ) : (
+              <>
+                <CollapsibleFilterSection
+                  title="Tags"
+                  open={openSections.tags ?? false}
+                  onOpenChange={(open) =>
+                    setOpenSections((prev) => ({ ...prev, tags: open }))
+                  }
+                >
+                  <TagFilter
+                    tags={tags}
+                    activeTags={filters.activeTags}
+                    onToggle={handlers.handleToggleTag}
+                    onClear={handlers.handleClearTags}
+                    hideHeader
+                  />
+                </CollapsibleFilterSection>
+                <CollapsibleFilterSection
+                  title="Date"
+                  open={openSections.date ?? false}
+                  onOpenChange={(open) =>
+                    setOpenSections((prev) => ({ ...prev, date: open }))
+                  }
+                >
+                  <DateFilter
+                    variant="sidebar"
+                    dateFilter={filters.dateFilter}
+                    customDate={filters.customDate}
+                    onDateFilterChange={handlers.setDateFilter}
+                    onCustomDateChange={handlers.setCustomDate}
+                    onClear={handlers.clearDateFilter}
+                    hideHeader
+                  />
+                </CollapsibleFilterSection>
+              </>
+            )}
+          </div>
         </div>
-
-        <div className="flex flex-col gap-3">
-          {user.role === "coach" ? (
-            coachSections.map((s) => (
-              <CollapsibleFilterSection
-                key={s.id}
-                title={s.title}
-                open={openSections[s.id] ?? false}
-                onOpenChange={(open) =>
-                  setOpenSections((prev) => ({ ...prev, [s.id]: open }))
-                }
-              >
-                {s.node}
-              </CollapsibleFilterSection>
-            ))
-          ) : (
-            <>
-              <CollapsibleFilterSection
-                title="Tags"
-                open={openSections.tags ?? false}
-                onOpenChange={(open) =>
-                  setOpenSections((prev) => ({ ...prev, tags: open }))
-                }
-              >
-                <TagFilter
-                  tags={tags}
-                  activeTags={filters.activeTags}
-                  onToggle={handlers.handleToggleTag}
-                  onClear={handlers.handleClearTags}
-                  hideHeader
-                />
-              </CollapsibleFilterSection>
-              <CollapsibleFilterSection
-                title="Date"
-                open={openSections.date ?? false}
-                onOpenChange={(open) =>
-                  setOpenSections((prev) => ({ ...prev, date: open }))
-                }
-              >
-                <DateFilter
-                  variant="sidebar"
-                  dateFilter={filters.dateFilter}
-                  customDate={filters.customDate}
-                  onDateFilterChange={handlers.setDateFilter}
-                  onCustomDateChange={handlers.setCustomDate}
-                  onClear={handlers.clearDateFilter}
-                  hideHeader
-                />
-              </CollapsibleFilterSection>
-            </>
-          )}
-        </div>
-      </div>
       )}
     </aside>
   );

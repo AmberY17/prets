@@ -45,6 +45,7 @@ export function LogCard({
   onMutateLogs,
 }: LogCardProps) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const formattedDate = format(new Date(log.timestamp), "MMM d, yyyy");
   const formattedTime = format(new Date(log.timestamp), "h:mm a");
 
@@ -59,6 +60,8 @@ export function LogCard({
         ease: [0.22, 1, 0.36, 1],
       }}
       className="group cursor-pointer rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/20"
+      onMouseOver={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       onClick={(e) => {
         e.stopPropagation();
         onClick(log);
@@ -121,7 +124,7 @@ export function LogCard({
               )}
               {log.isOwn && (
                 <div
-                  className={`flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 ${
+                  className={`flex items-center gap-1 transition-opacity ${isHovered ? "opacity-100" : "opacity-0"} ${
                     !isCoach ? "hidden lg:flex" : ""
                   }`}
                 >
