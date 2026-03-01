@@ -45,13 +45,14 @@ interface DashboardFeedProps {
   onNewLog: () => void;
   onClosePanel: () => void;
   panelMode: "new" | "view" | "edit" | null;
-  announcement: {
+  announcements: {
     id: string;
     text: string;
     coachName: string;
     createdAt: string;
-  } | null;
+  }[];
   checkins: CheckinItem[];
+  trainingScheduleTemplate?: { dayOfWeek: number; time: string }[];
   onMutateAnnouncement: () => void;
   onMutateCheckins: () => void;
   onMutateLogs?: () => void;
@@ -76,8 +77,9 @@ export function DashboardFeed({
   onNewLog,
   onClosePanel,
   panelMode,
-  announcement,
+  announcements,
   checkins,
+  trainingScheduleTemplate,
   onMutateAnnouncement,
   onMutateCheckins,
   onMutateLogs,
@@ -196,7 +198,7 @@ export function DashboardFeed({
 
         {user.groupId && (
           <AnnouncementBanner
-            announcement={announcement}
+            announcements={announcements}
             isCoach={user.role === "coach"}
             onMutate={onMutateAnnouncement}
           />
@@ -208,6 +210,7 @@ export function DashboardFeed({
             isCoach={user.role === "coach"}
             onCheckinLog={onCheckinLog}
             onMutate={onMutateCheckins}
+            trainingScheduleTemplate={trainingScheduleTemplate}
           />
         )}
 

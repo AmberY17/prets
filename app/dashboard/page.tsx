@@ -61,6 +61,7 @@ export default function DashboardPage() {
   const { data: membersData } = useSWR<{
     members: { id: string; displayName: string; email: string; role: string }[];
     roles: { id: string; name: string }[];
+    trainingScheduleTemplate?: { dayOfWeek: number; time: string }[];
   }>(
     user?.role === "coach" && user?.groupId
       ? [`/api/groups?groupId=${user.groupId}`, user.id]
@@ -93,12 +94,12 @@ export default function DashboardPage() {
   );
 
   const { data: announcementData, mutate: mutateAnnouncement } = useSWR<{
-    announcement: {
+    announcements: {
       id: string;
       text: string;
       coachName: string;
       createdAt: string;
-    } | null;
+    }[];
   }>(
     user?.groupId ? ["/api/announcements", user.id, user.groupId] : null,
     urlFetcher,
@@ -261,8 +262,9 @@ export default function DashboardPage() {
           onNewLog={panelHandlers.handleNewLog}
           onClosePanel={panelHandlers.handleClosePanel}
           panelMode={panelState.panelMode}
-          announcement={announcementData?.announcement ?? null}
+          announcements={announcementData?.announcements ?? []}
           checkins={checkinsData?.checkins ?? []}
+          trainingScheduleTemplate={membersData?.trainingScheduleTemplate}
           isLoading={logsLoading}
           hasMoreLogs={hasMoreLogs}
           isLoadingMore={logsValidating}

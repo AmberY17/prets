@@ -27,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { getNextPracticeFromSchedule } from "@/lib/next-practice-from-schedule";
 
 export interface CheckinItem {
   id: string;
@@ -46,6 +47,7 @@ interface CheckinCardProps {
   isCoach: boolean;
   onCheckinLog: (sessionDate: string, checkinId: string) => void;
   onMutate: () => void;
+  trainingScheduleTemplate?: { dayOfWeek: number; time: string }[];
 }
 
 function toLocalDatetime(isoString?: string) {
@@ -60,6 +62,7 @@ export function CheckinCard({
   isCoach,
   onCheckinLog,
   onMutate,
+  trainingScheduleTemplate,
 }: CheckinCardProps) {
   const [isComposing, setIsComposing] = useState(false);
   const [title, setTitle] = useState("");
@@ -262,7 +265,24 @@ export function CheckinCard({
               <Button
                 variant="ghost-primary"
                 size="sm"
-                onClick={() => setIsComposing(true)}
+                onClick={() => {
+                  if (
+                    trainingScheduleTemplate &&
+                    trainingScheduleTemplate.length > 0
+                  ) {
+                    const next = getNextPracticeFromSchedule(
+                      trainingScheduleTemplate
+                    );
+                    if (next) {
+                      setSessionDate(toLocalDatetime(next.toISOString()));
+                    } else {
+                      setSessionDate(toLocalDatetime());
+                    }
+                  } else {
+                    setSessionDate(toLocalDatetime());
+                  }
+                  setIsComposing(true);
+                }}
                 className="w-full gap-2"
               >
                 <Plus className="h-3.5 w-3.5" />
