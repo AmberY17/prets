@@ -39,14 +39,3 @@ Cypress.Commands.add("logout", () => {
   cy.request("POST", "/api/auth/logout");
   cy.clearAllCookies();
 });
-
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      login(email: string, password: string): Chainable<void>;
-      loginAsAthlete(): Chainable<void>;
-      loginAsCoach(): Chainable<void>;
-      logout(): Chainable<void>;
-    }
-  }
-}

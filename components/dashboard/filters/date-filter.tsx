@@ -142,9 +142,9 @@ export function DateFilter({
           {opt.label}
         </button>
       ))}
-      {/* Calendar icon button backed by a hidden date input */}
+      {/* Calendar icon button backed by a transparent overlay input (sr-only breaks touch on mobile) */}
       <label
-        className={`shrink-0 cursor-pointer ${buttonBase} ${
+        className={`relative shrink-0 cursor-pointer ${buttonBase} ${
           dateFilter === "custom" ? buttonActive : buttonInactive
         }`}
         aria-label="Pick a date"
@@ -157,10 +157,10 @@ export function DateFilter({
             if (e.target.value) onDateFilterChange("custom");
             else onDateFilterChange("all");
           }}
-          className="sr-only"
+          className="absolute inset-0 size-full cursor-pointer opacity-0"
         />
         {formattedDate ? (
-          <span className="flex items-center gap-1">
+          <span className="pointer-events-none flex items-center gap-1">
             {formattedDate}
             <span
               role="button"
@@ -168,6 +168,7 @@ export function DateFilter({
               aria-label="Clear date"
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 onCustomDateChange("");
                 onDateFilterChange("all");
               }}
@@ -178,13 +179,13 @@ export function DateFilter({
                   onDateFilterChange("all");
                 }
               }}
-              className="ml-0.5 rounded-full hover:text-foreground"
+              className="pointer-events-auto ml-0.5 rounded-full hover:text-foreground"
             >
               <X className="h-3 w-3" />
             </span>
           </span>
         ) : (
-          <Calendar className="h-3.5 w-3.5" />
+          <Calendar className="pointer-events-none h-3.5 w-3.5" />
         )}
       </label>
     </>
