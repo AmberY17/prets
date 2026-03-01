@@ -15,7 +15,7 @@ import {
   type CheckinItem,
 } from "@/components/dashboard/shared/checkin-card";
 import { LogCard, type LogEntry } from "@/components/dashboard/logs/log-card";
-import { DashboardFeedSkeleton } from "@/components/dashboard/main/dashboard-skeletons";
+import { LogCardSkeleton } from "@/components/dashboard/main/dashboard-skeletons";
 import type { User } from "@/hooks/use-auth";
 import type {
   DashboardFiltersState,
@@ -104,9 +104,6 @@ export function DashboardFeed({
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [hasMoreLogs, onLoadMore, isLoadingMore]);
-  if (isLoading) {
-    return <DashboardFeedSkeleton user={user} />;
-  }
 
   const filteredAthlete = filters.filterAthleteId
     ? athletes.find((a) => a.id === filters.filterAthleteId)
@@ -238,7 +235,9 @@ export function DashboardFeed({
 
         <div className="flex flex-col gap-3">
           <AnimatePresence mode="popLayout">
-            {logs.length === 0 ? (
+            {isLoading ? (
+              [1, 2, 3, 4].map((i) => <LogCardSkeleton key={i} />)
+            ) : logs.length === 0 ? (
               <motion.div
                 key="empty"
                 initial={{ opacity: 0 }}

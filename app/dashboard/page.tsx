@@ -194,8 +194,6 @@ export default function DashboardPage() {
     }
   }, [user, myGroupsData]);
 
-  const isDataLoading = logsLoading || tagsLoading;
-
   if (authLoading || !user) {
     return <LoadingScreen message="Loading dashboard..." />;
   }
@@ -233,7 +231,7 @@ export default function DashboardPage() {
           sessions={sessions}
           athletes={athletes}
           groupRoles={groupRoles}
-          isLoading={isDataLoading}
+          isLoading={tagsLoading}
           stats={
             user.role === "athlete"
               ? {
@@ -265,7 +263,7 @@ export default function DashboardPage() {
           panelMode={panelState.panelMode}
           announcement={announcementData?.announcement ?? null}
           checkins={checkinsData?.checkins ?? []}
-          isLoading={isDataLoading}
+          isLoading={logsLoading}
           hasMoreLogs={hasMoreLogs}
           isLoadingMore={logsValidating}
           onLoadMore={() => setSize(size + 1)}
