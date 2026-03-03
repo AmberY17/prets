@@ -125,3 +125,66 @@ export async function sendPasswordResetEmail(
   }
   return { ok: true }
 }
+
+const FEEDBACK_EMAIL =
+  process.env.FEEDBACK_EMAIL ?? process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev"
+
+export async function sendFeedbackEmail(
+  message: string,
+  metadata?: { email?: string; displayName?: string; page?: string }
+): Promise<{ ok: boolean; error?: string }> {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    console.error("RESEND_API_KEY is not set")
+    return { ok: false, error: "Email service is not configured" }
+  }
+
+  const resend = new Resend(apiKey)
+  const fromLabel = metadata?.displayName ?? metadata?.email ?? "Anonymous"
+  const subject = `Pretvia Feedback from ${fromLabel}`
+
+  const lines: string[] = [
+    `<p style="margin: 0 0 16px; font-size: 16px; color: #18181b; white-space: pre-wrap;">${escapeHtml(message)}</p>`,
+  ]
+  if (metadata?.email) {
+    lines.push(`<p style="margin: 0 0 8px; font-size: 14px; color: #71717a;">From: ${escapeHtml(metadata.email)}</p>`)
+  }
+  if (metadata?.displayName && !metadata?.email) {
+    lines.push(`<p style="margin: 0 0 8px; font-size: 14px; color: #71717a;">From: ${escapeHtml(metadata.displayName)} (anonymous)</p>`)
+  }
+  if (metadata?.page) {
+    lines.push(`<p style="margin: 0; font-size: 14px; color: #a1a1aa;">Page: ${escapeHtml(metadata.page)}</p>`)
+  }
+
+  const { error } = await resend.emails.send({
+    from: FROM_DISPLAY,
+    to: FEEDBACK_EMAIL,
+    replyTo: metadata?.email ?? undefined,
+    subject,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head><meta charset="utf-8"></head>
+        <body style="margin: 0; padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <h2 style="margin: 0 0 16px; font-size: 18px; color: #18181b;">Pretvia Feedback</h2>
+          ${lines.join("")}
+        </body>
+      </html>
+    `,
+  })
+
+  if (error) {
+    console.error("Resend feedback error:", error)
+    return { ok: false, error: error.message }
+  }
+  return { ok: true }
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+}

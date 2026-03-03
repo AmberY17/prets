@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { ThemeProvider } from "@/components/theme-provider";
+import { FeedbackButton } from "@/components/feedback/feedback-button";
 
 import "./globals.css";
 import "@ncdai/react-wheel-picker/style.css";
@@ -65,6 +66,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <FeedbackButton />
           <Toaster
             position="top-right"
             duration={2000}
