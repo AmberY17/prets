@@ -43,13 +43,13 @@ export function LogCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10, scale: 0.95 }}
       transition={{
-        delay: index * 0.05,
-        duration: 0.4,
-        ease: [0.22, 1, 0.36, 1],
+        delay: index * 0.04,
+        duration: 0.55,
+        ease: [0.25, 0.46, 0.45, 0.94],
       }}
       className="group cursor-pointer rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/20"
       onMouseOver={() => setIsHovered(true)}

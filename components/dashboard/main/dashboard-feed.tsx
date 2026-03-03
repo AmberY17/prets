@@ -230,9 +230,18 @@ export function DashboardFeed({
         </div>
 
         <div className="flex flex-col gap-3">
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="wait">
             {isLoading ? (
-              [1, 2, 3, 4].map((i) => <LogCardSkeleton key={i} />)
+              [1, 2, 3, 4].map((i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <LogCardSkeleton />
+                </motion.div>
+              ))
             ) : logs.length === 0 ? (
               <motion.div
                 key="empty"
