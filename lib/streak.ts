@@ -6,20 +6,23 @@
 
 import type { Db } from "mongodb"
 import { ObjectId } from "mongodb"
+import { parseTime } from "@/lib/time-utils"
+import type { TrainingSlotItem } from "@/types/dashboard"
 
-export interface TrainingSlot {
-  dayOfWeek: number // 0 = Sun, 6 = Sat
-  time: string // "HH:mm" 24h
-  // Optional: which group this slot was sourced from (if any)
-  sourceGroupId?: string
-}
+export type TrainingSlot = TrainingSlotItem
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const WINDOW_MS = DAY_MS // 24-hour window to log after slot
 
 /**
- * Get the date of the most recent occurrence of a given dayOfWeek before or at a reference date.
+ * Derive day-of-week (0=Sunday) from a "YYYY-MM-DD" string without any
+ * timezone ambiguity — purely a calendar calculation.
  */
+function dayOfWeekFromDateStr(dateStr: string): number {
+  const [y, m, d] = dateStr.split("-").map(Number)
+  return new Date(y, m - 1, d).getDay()
+}
+
 function getLastOccurrenceOfDay(refDate: Date, dayOfWeek: number): Date {
   const d = new Date(refDate)
   const currentDay = d.getUTCDay()
@@ -28,14 +31,6 @@ function getLastOccurrenceOfDay(refDate: Date, dayOfWeek: number): Date {
   d.setUTCDate(d.getUTCDate() - diff)
   d.setUTCHours(0, 0, 0, 0)
   return d
-}
-
-/**
- * Parse "HH:mm" into hours and minutes.
- */
-function parseTime(time: string): { hours: number; minutes: number } {
-  const [h, m] = time.split(":").map(Number)
-  return { hours: h ?? 0, minutes: m ?? 0 }
 }
 
 /**
@@ -116,7 +111,7 @@ export async function computeStreak(
   db: Db,
   userId: string,
   trainingSlots: TrainingSlot[],
-  timezone = "UTC"
+  localDate?: string
 ): Promise<StreakResult> {
   const totalLogs = await db
     .collection("logs")
@@ -150,8 +145,12 @@ export async function computeStreak(
   // Streak = consecutive calendar days (one day = one point, even with multiple slots)
   const trainingDayOfWeeks = [...new Set(trainingSlots.map((s) => s.dayOfWeek))]
   let streak = 0
-  let iterDate = new Date(now)
-  iterDate.setUTCHours(23, 59, 59, 999)
+
+  // Start iteration from the end of the user's local calendar date so that day-of-week
+  // comparisons align with the timezone the user used when setting up their schedule.
+  const refDateStr = localDate ?? now.toISOString().slice(0, 10)
+  const [ry, rm, rd] = refDateStr.split("-").map(Number)
+  let iterDate = new Date(Date.UTC(ry, rm - 1, rd, 23, 59, 59, 999))
 
   for (let i = 0; i < 365; i++) {
     const dayOfWeek = iterDate.getUTCDay()
@@ -197,11 +196,15 @@ export interface TodaySkipStatus {
 export async function computeTodaySkipStatus(
   db: Db,
   userId: string,
-  trainingSlots: TrainingSlot[]
+  trainingSlots: TrainingSlot[],
+  localDate?: string
 ): Promise<TodaySkipStatus> {
   const now = new Date()
-  const todayDay = now.getUTCDay()
-  const todayDateStr = now.toISOString().slice(0, 10)
+
+  // Use the user's local calendar date (provided by the client) to determine which
+  // day-of-week slots to check. Falls back to UTC if not provided.
+  const todayDay = localDate ? dayOfWeekFromDateStr(localDate) : now.getUTCDay()
+  const todayDateStr = localDate ?? now.toISOString().slice(0, 10)
 
   const todaySlots = trainingSlots.filter((s) => s.dayOfWeek === todayDay)
   if (todaySlots.length === 0) {
@@ -228,8 +231,10 @@ export async function computeTodaySkipStatus(
     .project({ timestamp: 1 })
     .toArray()
 
+  // Use localDate as the reference so we find today's slot occurrence correctly.
+  const refDate = localDate ? new Date(localDate + "T00:00:00.000Z") : now
   for (const slot of todaySlots) {
-    const occurrenceDate = getLastOccurrenceOfDay(now, slot.dayOfWeek)
+    const occurrenceDate = getLastOccurrenceOfDay(refDate, slot.dayOfWeek)
     const slotTime = slotInstanceForDate(occurrenceDate, slot)
     if (slotTime > now) continue
     const hasLog = logs.some((l) => {
