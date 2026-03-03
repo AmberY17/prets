@@ -25,11 +25,68 @@
   --rdp-background-color-dark: hsl(var(--accent) / 0.3);
 }
 
+/*
+ * Shadow Elevation System
+ * Each elevation combines three layers:
+ *   1. Ambient  — large, soft, low-opacity spread (fills the whole "shadow cone")
+ *   2. Key      — tighter, slightly stronger shadow at a consistent 2:1 x:y ratio (simulates directional light from top-left)
+ *   3. Highlight — a 1px inset white-ish line on the top/left edge to sell the "lifted" illusion
+ *
+ * Pressed state uses inset shadows to push the element into the surface.
+ * All shadows reference CSS custom properties so they automatically
+ * adapt between light and dark themes.
+ *
+ * Usage (Tailwind):
+ *   shadow-raised-sm   → subtle lift (badges, chips, inputs)
+ *   shadow-raised      → default card elevation
+ *   shadow-raised-lg   → modals, dropdowns
+ *   shadow-raised-xl   → hero cards, featured panels
+ *   shadow-pressed     → active/pressed button state
+ *   shadow-inset       → inset inputs, recessed wells
+ */
+
+@layer utilities {
+  .shadow-raised-sm {
+    box-shadow:
+      0 1px 2px hsl(var(--shadow-ambient)),
+      0 1px 3px hsl(var(--shadow-key)),
+      inset 0 1px 0 hsl(var(--shadow-highlight));
+  }
+  .shadow-raised {
+    box-shadow:
+      0 2px 8px hsl(var(--shadow-ambient)),
+      0 1px 3px hsl(var(--shadow-key)),
+      inset 0 1px 0 hsl(var(--shadow-highlight));
+  }
+  .shadow-raised-lg {
+    box-shadow:
+      0 4px 16px hsl(var(--shadow-ambient)),
+      0 2px 6px hsl(var(--shadow-key)),
+      inset 0 1px 0 hsl(var(--shadow-highlight));
+  }
+  .shadow-raised-xl {
+    box-shadow:
+      0 8px 32px hsl(var(--shadow-ambient)),
+      0 4px 12px hsl(var(--shadow-key)),
+      inset 0 1px 0 hsl(var(--shadow-highlight));
+  }
+  .shadow-pressed {
+    box-shadow:
+      inset 0 2px 4px hsl(var(--shadow-key)),
+      inset 0 1px 2px hsl(var(--shadow-ambient));
+  }
+  .shadow-inset {
+    box-shadow:
+      inset 0 1px 3px hsl(var(--shadow-key)),
+      inset 0 1px 6px hsl(var(--shadow-ambient));
+  }
+}
+
 @layer base {
   /* ===== Theme: Green + Amber (default) ===== */
   :root,
   [data-theme="green"] {
-    --background: 0 0% 98%;
+    --background: 0 0% 96%;
     --foreground: 220 15% 15%;
     --card: 0 0% 100%;
     --card-foreground: 220 15% 15%;
@@ -66,6 +123,10 @@
     --checkin: 38 92% 50%;
     --checkin-foreground: 0 0% 100%;
     --checkin-muted: 38 92% 50%;
+    /* Shadow elevation tokens */
+    --shadow-ambient: 220 15% 55% / 0.12;
+    --shadow-key: 220 25% 30% / 0.10;
+    --shadow-highlight: 0 0% 100% / 0.80;
   }
 
   /* ===== Theme: Green + Amber (dark) ===== */
@@ -108,6 +169,10 @@
     --checkin: 38 92% 50%;
     --checkin-foreground: 0 0% 100%;
     --checkin-muted: 38 92% 50%;
+    /* Shadow elevation tokens — dark */
+    --shadow-ambient: 220 20% 2% / 0.40;
+    --shadow-key: 220 20% 2% / 0.55;
+    --shadow-highlight: 0 0% 100% / 0.06;
   }
 
   /* ===== Theme: Blue + Yellow ===== */
@@ -149,6 +214,10 @@
     --checkin: 45 93% 47%;
     --checkin-foreground: 220 15% 15%;
     --checkin-muted: 45 93% 47%;
+    /* Shadow elevation tokens */
+    --shadow-ambient: 215 20% 50% / 0.12;
+    --shadow-key: 218 30% 25% / 0.10;
+    --shadow-highlight: 0 0% 100% / 0.80;
   }
 
   /* ===== Theme: Blue + Yellow (dark) ===== */
@@ -190,6 +259,10 @@
     --checkin: 45 93% 50%;
     --checkin-foreground: 220 15% 10%;
     --checkin-muted: 45 93% 50%;
+    /* Shadow elevation tokens — dark */
+    --shadow-ambient: 218 25% 2% / 0.45;
+    --shadow-key: 218 25% 2% / 0.60;
+    --shadow-highlight: 0 0% 100% / 0.06;
   }
 
   /* ===== Theme: Indigo + Rose ===== */
@@ -231,6 +304,10 @@
     --checkin: 350 70% 55%;
     --checkin-foreground: 0 0% 100%;
     --checkin-muted: 350 70% 55%;
+    /* Shadow elevation tokens */
+    --shadow-ambient: 230 20% 50% / 0.12;
+    --shadow-key: 232 30% 20% / 0.10;
+    --shadow-highlight: 0 0% 100% / 0.80;
   }
 
   /* ===== Theme: Indigo + Rose (dark) ===== */
@@ -272,6 +349,10 @@
     --checkin: 350 75% 60%;
     --checkin-foreground: 0 0% 100%;
     --checkin-muted: 350 75% 60%;
+    /* Shadow elevation tokens — dark */
+    --shadow-ambient: 232 25% 2% / 0.45;
+    --shadow-key: 232 25% 2% / 0.60;
+    --shadow-highlight: 0 0% 100% / 0.06;
   }
 }
 

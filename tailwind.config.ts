@@ -98,6 +98,20 @@ const config: Config = {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
+      boxShadow: {
+        'raised-sm':
+          '0 1px 2px hsl(var(--shadow-ambient)), 0 1px 3px hsl(var(--shadow-key)), inset 0 1px 0 hsl(var(--shadow-highlight))',
+        raised:
+          '0 2px 8px hsl(var(--shadow-ambient)), 0 1px 3px hsl(var(--shadow-key)), inset 0 1px 0 hsl(var(--shadow-highlight))',
+        'raised-lg':
+          '0 4px 16px hsl(var(--shadow-ambient)), 0 2px 6px hsl(var(--shadow-key)), inset 0 1px 0 hsl(var(--shadow-highlight))',
+        'raised-xl':
+          '0 8px 32px hsl(var(--shadow-ambient)), 0 4px 12px hsl(var(--shadow-key)), inset 0 1px 0 hsl(var(--shadow-highlight))',
+        pressed:
+          'inset 0 2px 4px hsl(var(--shadow-key)), inset 0 1px 2px hsl(var(--shadow-ambient))',
+        inset:
+          'inset 0 1px 3px hsl(var(--shadow-key)), inset 0 1px 6px hsl(var(--shadow-ambient))',
+      },
     },
   },
   plugins: [require('tailwindcss-animate')],
