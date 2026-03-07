@@ -58,6 +58,7 @@ export function GuardianDashboardContent({
   onWeekChange,
 }: GuardianDashboardContentProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [viewModePopoverOpen, setViewModePopoverOpen] = useState(false);
   const selectedSet = new Set(selectedPairs.map(pairKey));
 
   const togglePair = (p: GuardianPair) => {
@@ -117,6 +118,63 @@ export function GuardianDashboardContent({
     </Popover>
   );
 
+  const ViewModePopover = () => (
+    <Popover open={viewModePopoverOpen} onOpenChange={setViewModePopoverOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          {viewMode === "month" ? (
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+          ) : (
+            <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+          )}
+          <span>{viewMode === "month" ? "Month" : "Week"}</span>
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-40 p-2" align="end" side="bottom">
+        <p className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          View
+        </p>
+        <div className="flex flex-col gap-0.5">
+          <button
+            type="button"
+            onClick={() => {
+              onViewModeChange("month");
+              setViewModePopoverOpen(false);
+            }}
+            className={`flex items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors ${
+              viewMode === "month"
+                ? "bg-primary/10 text-primary"
+                : "text-foreground hover:bg-secondary"
+            }`}
+          >
+            <Calendar className="h-4 w-4 shrink-0" />
+            Month
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onViewModeChange("week");
+              setViewModePopoverOpen(false);
+            }}
+            className={`flex items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors ${
+              viewMode === "week"
+                ? "bg-primary/10 text-primary"
+                : "text-foreground hover:bg-secondary"
+            }`}
+          >
+            <CalendarDays className="h-4 w-4 shrink-0" />
+            Week
+          </button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+
   if (selectedPairs.length === 0) {
     return (
       <main className="flex flex-1 flex-col overflow-y-auto p-6">
@@ -140,31 +198,34 @@ export function GuardianDashboardContent({
             <div className="lg:hidden">
               <AthletesPopover />
             </div>
-            <div className="flex gap-1">
-            <button
-              type="button"
-              onClick={() => onViewModeChange("month")}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
-                viewMode === "month"
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/30"
-              }`}
-            >
-              <Calendar className="h-4 w-4" />
-              Month
-            </button>
-            <button
-              type="button"
-              onClick={() => onViewModeChange("week")}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
-                viewMode === "week"
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/30"
-              }`}
-            >
-              <CalendarDays className="h-4 w-4" />
-              Week
-            </button>
+            <div className="lg:hidden">
+              <ViewModePopover />
+            </div>
+            <div className="hidden gap-1 lg:flex">
+              <button
+                type="button"
+                onClick={() => onViewModeChange("month")}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                  viewMode === "month"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/30"
+                }`}
+              >
+                <Calendar className="h-4 w-4" />
+                Month
+              </button>
+              <button
+                type="button"
+                onClick={() => onViewModeChange("week")}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                  viewMode === "week"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/30"
+                }`}
+              >
+                <CalendarDays className="h-4 w-4" />
+                Week
+              </button>
             </div>
           </div>
         </div>
